@@ -206,6 +206,23 @@ export async function listReview() {
   return state.opportunities.filter((item) => item.status === "draft");
 }
 
+export async function archiveExpiredOpportunities() {
+  const now = new Date().toISOString();
+  const client = supabase();
+  if (client) {
+    const { data, error } = await client.from("opportunities").update({ status: "archived", verification_status: "expired", updated_at: now }).lt("registration_deadline", now).in("status", ["published", "draft"]).select("id");
+    if (error) throw error;
+    return data?.length ?? 0;
+  }
+  let count = 0;
+  for (const item of state.opportunities) {
+    if ((item.status === "published" || item.status === "draft") && item.registrationDeadline && new Date(item.registrationDeadline) < new Date()) {
+      item.status = "archived"; item.verificationStatus = "expired"; item.updatedAt = now; count += 1;
+    }
+  }
+  return count;
+}
+
 export async function updateOpportunity(id: string, patch: Partial<Opportunity>) {
   const current = await getOpportunity(id);
   if (!current) return null;

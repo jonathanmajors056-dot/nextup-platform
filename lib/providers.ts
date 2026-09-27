@@ -12,7 +12,7 @@ export function listProviders(): OpportunityProvider[] {
   const providers: OpportunityProvider[] = [
     { id: "admin-manual", name: "Admin submissions", kind: "manual", regions: ["IN", "GLOBAL"], supportsOnline: true, status: "configured", lastRunAt: null, lastSuccessAt: null, lastError: null },
     { id: "approved-rss", name: "Approved RSS feeds", kind: "rss", regions: ["IN", "GLOBAL"], supportsOnline: true, status: rssConfigured ? "configured" : "needs_configuration", sourceUrl: rssConfigured ? "Configured by environment" : undefined, lastRunAt: null, lastSuccessAt: null, lastError: null },
-    { id: "eventbrite", name: "Eventbrite", kind: "official_api", regions: ["IN", "GLOBAL"], supportsOnline: true, status: eventbriteConfigured ? "configured" : "needs_configuration", lastRunAt: null, lastSuccessAt: null, lastError: null },
+    { id: "eventbrite-organizer", name: "Eventbrite organizer API", kind: "organizer", regions: ["IN", "GLOBAL"], supportsOnline: true, status: eventbriteConfigured ? "configured" : "needs_configuration", lastRunAt: null, lastSuccessAt: null, lastError: eventbriteConfigured ? null : "Public Eventbrite event search is unavailable; organizer authorization is required." },
   ];
   return providers.map(mergeHealth);
 }

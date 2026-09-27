@@ -60,7 +60,7 @@ npm run start
 
 Provider adapters are represented in `lib/providers.ts` and normalized candidates flow through `lib/ingestion.ts`. Every ingested record starts as `awaiting_review`; the ingestion endpoint never publishes directly. The Supabase migration adds `opportunity_sources` and `opportunity_source_items` for provider health and durable source lineage. Only approved feeds and APIs should be configured; do not bypass robots.txt, access controls, or provider terms.
 
-`OPPORTUNITY_RSS_URLS` is a comma-separated allowlist. Sync fetches each feed at most once per five-minute cache window, limits each response to 2 MB and 100 candidates, and records provider errors without breaking the student feed.
+`OPPORTUNITY_RSS_URLS` is a comma-separated allowlist. Sync fetches each feed at most once per five-minute cache window, limits each response to 2 MB and 100 candidates, and records provider errors without breaking the student feed. Do not depend on Eventbrite's retired public event-search endpoint; Eventbrite support should use an organizer-authorized integration only.
 
 Vercel runs the expiry endpoint daily through `vercel.json`. Configure `CRON_SECRET` in hosting so scheduled requests are authenticated; `ADMIN_REVIEW_KEY` remains the local/manual fallback.
 

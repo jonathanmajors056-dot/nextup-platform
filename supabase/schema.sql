@@ -89,6 +89,11 @@ create table if not exists location_preferences (
   updated_at timestamptz not null default now()
 );
 
+-- Safe upgrades for projects that already ran an earlier NextUp schema.
+alter table opportunities add column if not exists latitude numeric;
+alter table opportunities add column if not exists longitude numeric;
+alter table location_preferences add column if not exists radius_km integer not null default 250;
+
 alter table opportunities enable row level security;
 alter table saved_opportunities enable row level security;
 alter table opportunity_audit_log enable row level security;

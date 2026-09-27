@@ -67,6 +67,8 @@ Provider adapters are represented in `lib/providers.ts` and normalized candidate
 
 Vercel runs the expiry endpoint daily through `vercel.json`. Configure `CRON_SECRET` in hosting so scheduled requests are authenticated; `ADMIN_REVIEW_KEY` remains the local/manual fallback.
 
+Apply `supabase/schema.sql` to the project before enabling persistence. The schema includes idempotent upgrade statements for latitude/longitude and location radius columns, so it can be safely rerun against the existing pilot database.
+
 ## Deployment
 
 The recommended workflow is a private GitHub repository connected to Vercel. Clone the repository on a new laptop, run `npm install`, create `.env.local` from `.env.example`, validate locally, then commit and push changes. Vercel should create preview deployments for branches and deploy the production branch.

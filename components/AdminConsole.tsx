@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import type { Opportunity } from "@/lib/types";
+import type { OpportunityProvider } from "@/lib/types";
+import { ProviderHealth } from "./ProviderHealth";
 
-export function AdminConsole({ initialReview }: { initialReview: Opportunity[] }) {
+export function AdminConsole({ initialReview, initialProviders }: { initialReview: Opportunity[]; initialProviders: OpportunityProvider[] }) {
   const [review, setReview] = useState(initialReview);
   const [rawText, setRawText] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
@@ -29,6 +31,7 @@ export function AdminConsole({ initialReview }: { initialReview: Opportunity[] }
 
   return (
     <div className="admin-layout">
+      <ProviderHealth initial={initialProviders} />
       <section className="card form-card">
         <div className="section-heading" style={{ marginTop: 0 }}><div><h2>New opportunity draft</h2><p>Paste a WhatsApp forward or source text. AI will extract a reviewable draft.</p></div></div>
         <form onSubmit={submit} className="form-grid">

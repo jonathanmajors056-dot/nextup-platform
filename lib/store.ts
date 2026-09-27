@@ -230,6 +230,9 @@ export async function archiveExpiredOpportunities() {
 export async function recordSourceItem(input: { fingerprint: string; providerId: string; externalId?: string; opportunityId: string; sourceUrl: string }) {
   const client = supabase();
   if (client) {
+    const kind = input.providerId.startsWith("rss:") ? "rss" : input.providerId.startsWith("api:") ? "official_api" : "manual";
+    const { error: providerError } = await client.from("opportunity_sources").upsert({ id: input.providerId, name: input.providerId, kind, status: "configured", regions: ["IN", "GLOBAL"], supports_online: true, updated_at: new Date().toISOString() }, { onConflict: "id" });
+    if (providerError) throw providerError;
     const { error } = await client.from("opportunity_source_items").upsert({ fingerprint: input.fingerprint, provider_id: input.providerId, external_id: input.externalId ?? null, opportunity_id: input.opportunityId, source_url: input.sourceUrl, last_seen_at: new Date().toISOString() });
     if (error) throw error;
   } else {

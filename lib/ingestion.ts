@@ -11,6 +11,12 @@ function validUrl(value: string | undefined) {
   try { return value ? new URL(value).toString() : ""; } catch { return ""; }
 }
 
+function normalizedDate(value: string | null | undefined) {
+  if (!value) return null;
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? null : new Date(timestamp).toISOString();
+}
+
 export function opportunityFingerprint(candidate: Pick<IngestionCandidate, "officialUrl" | "title" | "organizer" | "registrationDeadline">) {
   const canonical = validUrl(candidate.officialUrl).toLowerCase() || [candidate.title, candidate.organizer, candidate.registrationDeadline ?? ""].map((value) => clean(value).toLowerCase()).join("|");
   return createHash("sha256").update(canonical).digest("hex");
@@ -32,9 +38,9 @@ export function normalizeCandidate(candidate: IngestionCandidate): OpportunityDr
     sourceType: candidate.providerId.includes("rss") ? "rss" : "api",
     format,
     location: clean(candidate.location) || (format === "online" ? "Online" : "Location to be confirmed"),
-    eventStartDate: candidate.eventStartDate ?? null,
-    eventEndDate: candidate.eventEndDate ?? null,
-    registrationDeadline: candidate.registrationDeadline ?? null,
+    eventStartDate: normalizedDate(candidate.eventStartDate),
+    eventEndDate: normalizedDate(candidate.eventEndDate),
+    registrationDeadline: normalizedDate(candidate.registrationDeadline),
     eligibility: clean(candidate.eligibility),
     fees: clean(candidate.fees),
     benefit: clean(candidate.benefit),

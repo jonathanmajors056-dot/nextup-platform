@@ -4,7 +4,7 @@ import { categories } from "./types";
 export const submissionSchema = z.object({
   rawText: z.string().min(20, "Paste the full opportunity message so the AI can extract it."),
   sourceUrl: z.string().url().optional().or(z.literal("")),
-  sourceType: z.enum(["manual", "whatsapp", "official", "community"]).default("manual"),
+  sourceType: z.enum(["manual", "whatsapp", "official", "community", "api", "rss"]).default("manual"),
 });
 
 export const opportunitySchema = z.object({
@@ -15,7 +15,7 @@ export const opportunitySchema = z.object({
   organizer: z.string().default(""),
   officialUrl: z.string().url(),
   sourceUrl: z.string().url().or(z.literal("")),
-  sourceType: z.enum(["manual", "whatsapp", "official", "community"]),
+  sourceType: z.enum(["manual", "whatsapp", "official", "community", "api", "rss"]),
   format: z.enum(["online", "offline", "hybrid"]).default("online"),
   location: z.string().default(""),
   eventStartDate: z.string().nullable().default(null),

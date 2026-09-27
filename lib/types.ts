@@ -27,7 +27,7 @@ export type Opportunity = {
   organizer: string;
   officialUrl: string;
   sourceUrl: string;
-  sourceType: "manual" | "whatsapp" | "official" | "community";
+  sourceType: "manual" | "whatsapp" | "official" | "community" | "api" | "rss";
   format: "online" | "offline" | "hybrid";
   location: string;
   eventStartDate: string | null;
@@ -60,4 +60,45 @@ export type Submission = {
   sourceUrl: string;
   createdAt: string;
   opportunityId: string;
+};
+
+export type ProviderKind = "official_api" | "rss" | "organizer" | "manual";
+export type ProviderStatus = "configured" | "needs_configuration" | "disabled" | "error";
+
+export type OpportunityProvider = {
+  id: string;
+  name: string;
+  kind: ProviderKind;
+  regions: string[];
+  supportsOnline: boolean;
+  status: ProviderStatus;
+  sourceUrl?: string;
+  lastRunAt?: string | null;
+  lastSuccessAt?: string | null;
+  lastError?: string | null;
+};
+
+export type IngestionCandidate = {
+  providerId: string;
+  externalId?: string;
+  title: string;
+  description?: string;
+  summary?: string;
+  category?: Category;
+  organizer?: string;
+  officialUrl: string;
+  sourceUrl?: string;
+  format?: Opportunity["format"];
+  location?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  eventStartDate?: string | null;
+  eventEndDate?: string | null;
+  registrationDeadline?: string | null;
+  eligibility?: string;
+  fees?: string;
+  benefit?: string;
+  skills?: string[];
+  tags?: string[];
+  rawSource?: string;
 };

@@ -45,12 +45,18 @@ npm run start
 - `/admin` — review and publishing workflow
 - `/api/opportunities` — published opportunity feed
 - `/api/submissions` — admin submission intake
+- `/api/admin/providers` — configured provider registry and source health snapshot
+- `/api/admin/ingest` — admin-only normalized ingestion endpoint; creates reviewable drafts and rejects duplicates
 
 ## Current persistence boundary
 
 - Published opportunity reads and admin writes run server-side.
 - Saves are associated with the browser's generated workspace id, not a hardcoded shared student id.
 - Full email/OAuth sign-in is intentionally the next authentication milestone; do not treat the anonymous workspace id as an account identity.
+
+## Ingestion foundation
+
+Provider adapters are represented in `lib/providers.ts` and normalized candidates flow through `lib/ingestion.ts`. Every ingested record starts as `awaiting_review`; the ingestion endpoint never publishes directly. The Supabase migration adds `opportunity_sources` and `opportunity_source_items` for provider health and durable source lineage. Only approved feeds and APIs should be configured; do not bypass robots.txt, access controls, or provider terms.
 
 ## Deployment
 

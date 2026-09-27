@@ -48,6 +48,31 @@ create table if not exists opportunity_audit_log (
   created_at timestamptz not null default now()
 );
 
+create table if not exists opportunity_sources (
+  id text primary key,
+  name text not null,
+  kind text not null,
+  status text not null default 'needs_configuration',
+  source_url text,
+  regions text[] not null default '{}',
+  supports_online boolean not null default false,
+  last_run_at timestamptz,
+  last_success_at timestamptz,
+  last_error text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists opportunity_source_items (
+  fingerprint text primary key,
+  provider_id text not null references opportunity_sources(id) on delete cascade,
+  external_id text,
+  opportunity_id uuid references opportunities(id) on delete set null,
+  source_url text not null,
+  first_seen_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now()
+);
+
 alter table opportunities enable row level security;
 alter table saved_opportunities enable row level security;
 alter table opportunity_audit_log enable row level security;

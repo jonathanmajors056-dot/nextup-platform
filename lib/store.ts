@@ -120,6 +120,19 @@ export async function getOpportunity(id: string) {
   return state.opportunities.find((item) => item.id === id) ?? null;
 }
 
+export async function findOpportunityDuplicate(input: { officialUrl: string; title: string; organizer?: string; registrationDeadline?: string | null }) {
+  const client = supabase();
+  if (client) {
+    const byUrl = await client.from("opportunities").select("*").eq("official_url", input.officialUrl).limit(1);
+    if (byUrl.error) throw byUrl.error;
+    if (byUrl.data?.[0]) return fromDb(byUrl.data[0]);
+    return null;
+  }
+  const normalizedUrl = input.officialUrl.toLowerCase();
+  const normalizedTitle = input.title.trim().toLowerCase();
+  return state.opportunities.find((item) => item.officialUrl.toLowerCase() === normalizedUrl || (item.title.trim().toLowerCase() === normalizedTitle && item.organizer.trim().toLowerCase() === (input.organizer ?? "").trim().toLowerCase() && item.registrationDeadline === (input.registrationDeadline ?? null))) ?? null;
+}
+
 export async function createSubmission(input: { rawText: string; sourceType: Submission["sourceType"]; sourceUrl: string; draft: OpportunityDraft }) {
   const now = new Date().toISOString();
   const opportunity: Opportunity = {

@@ -21,6 +21,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 The application supports a fallback demo mode when Supabase environment variables are not configured. This makes it possible to develop and preview the interface without production credentials.
 
+When a visitor saves an opportunity, the server assigns a random browser-scoped workspace id in an `HttpOnly` cookie (the id is never accepted from the request body). With Supabase configured, saves are persisted in `saved_opportunities`; without it, they remain in the in-memory demo store. This anonymous identity is the migration path for adding Supabase Auth without changing the opportunity workflow.
+
 ## Environment variables
 
 Copy `.env.example` to `.env.local` and fill in values only on the machine or hosting provider that needs them.
@@ -43,6 +45,12 @@ npm run start
 - `/admin` — review and publishing workflow
 - `/api/opportunities` — published opportunity feed
 - `/api/submissions` — admin submission intake
+
+## Current persistence boundary
+
+- Published opportunity reads and admin writes run server-side.
+- Saves are associated with the browser's generated workspace id, not a hardcoded shared student id.
+- Full email/OAuth sign-in is intentionally the next authentication milestone; do not treat the anonymous workspace id as an account identity.
 
 ## Deployment
 

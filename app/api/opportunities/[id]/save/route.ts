@@ -1,10 +1,15 @@
 import { getOpportunity, saveOpportunity } from "@/lib/store";
+import { createViewerId, VIEWER_COOKIE } from "@/lib/identity";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!(await getOpportunity(id))) return Response.json({ error: "Opportunity not found" }, { status: 404 });
-  const body = await request.json().catch(() => ({}));
-  const userId = typeof body.userId === "string" && body.userId ? body.userId : "demo-student";
+  const existingViewer = request.headers.get("cookie")?.match(new RegExp(`(?:^|;\\s*)${VIEWER_COOKIE}=([^;]+)`))?.[1];
+  const userId = existingViewer && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(existingViewer)
+    ? existingViewer
+    : createViewerId();
   await saveOpportunity(userId, id);
-  return Response.json({ saved: true, opportunityId: id });
+  const response = Response.json({ saved: true, opportunityId: id });
+  if (!existingViewer) response.headers.append("Set-Cookie", `${VIEWER_COOKIE}=${userId}; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax${process.env.NODE_ENV === "production" ? "; Secure" : ""}`);
+  return response;
 }

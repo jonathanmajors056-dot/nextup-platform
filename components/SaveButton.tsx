@@ -11,7 +11,6 @@ export function SaveButton({ opportunityId }: { opportunityId: string }) {
     const response = await fetch(`/api/opportunities/${opportunityId}/save`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: "demo-student" }),
     });
     setBusy(false);
     if (response.ok) setSaved(true);

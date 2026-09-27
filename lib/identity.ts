@@ -1,0 +1,20 @@
+import { cookies } from "next/headers";
+
+export const VIEWER_COOKIE = "nextup-viewer";
+
+function isUuid(value: string | undefined): value is string {
+  return Boolean(value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value));
+}
+
+/**
+ * Returns the browser's stable anonymous workspace id. This is deliberately
+ * server-only: callers never need to send a user id from the browser.
+ */
+export async function getViewerId() {
+  const value = (await cookies()).get(VIEWER_COOKIE)?.value;
+  return isUuid(value) ? value : "demo-student";
+}
+
+export function createViewerId() {
+  return crypto.randomUUID();
+}

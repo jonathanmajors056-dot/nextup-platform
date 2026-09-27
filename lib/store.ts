@@ -122,7 +122,7 @@ export async function saveLocationPreference(preference: Omit<LocationPreference
     const { data, error } = await client.from("location_preferences").upsert({
       user_id: value.userId, label: value.label, city: value.city, region: value.region, country: value.country,
       latitude: value.latitude, longitude: value.longitude, precision: value.precision,
-      consented_to_geolocation: value.consentedToGeolocation, updated_at: value.updatedAt,
+      consented_to_geolocation: value.consentedToGeolocation, radius_km: value.radiusKm, updated_at: value.updatedAt,
     }).select("*").single();
     if (error) throw error;
     return fromLocationDb(data);
@@ -136,7 +136,7 @@ function fromLocationDb(row: Record<string, unknown>): LocationPreference {
     userId: String(row.user_id), label: String(row.label ?? ""), city: String(row.city ?? ""), region: String(row.region ?? ""), country: String(row.country ?? ""),
     latitude: row.latitude === null || row.latitude === undefined ? null : Number(row.latitude), longitude: row.longitude === null || row.longitude === undefined ? null : Number(row.longitude),
     precision: row.precision === "approximate" || row.precision === "country" ? row.precision : "city",
-    consentedToGeolocation: Boolean(row.consented_to_geolocation), updatedAt: String(row.updated_at),
+    consentedToGeolocation: Boolean(row.consented_to_geolocation), radiusKm: Number(row.radius_km ?? 250), updatedAt: String(row.updated_at),
   };
 }
 

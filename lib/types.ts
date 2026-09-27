@@ -116,5 +116,6 @@ export type LocationPreference = {
   longitude: number | null;
   precision: "city" | "country" | "approximate";
   consentedToGeolocation: boolean;
+  radiusKm: number;
   updatedAt: string;
 };

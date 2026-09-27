@@ -85,6 +85,7 @@ create table if not exists location_preferences (
   longitude numeric,
   precision text not null default 'city',
   consented_to_geolocation boolean not null default false,
+  radius_km integer not null default 250,
   updated_at timestamptz not null default now()
 );
 

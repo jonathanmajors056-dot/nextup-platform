@@ -1,6 +1,7 @@
 import { attachViewerCookie, viewerIdFromRequest } from "@/lib/identity";
 import { getLocationPreference, saveLocationPreference } from "@/lib/store";
 import { roundCoordinate } from "@/lib/geo";
+import { geocodePlace } from "@/lib/geocoding";
 import { z } from "zod";
 
 const preferenceSchema = z.object({
@@ -12,6 +13,7 @@ const preferenceSchema = z.object({
   longitude: z.number().min(-180).max(180).nullable().default(null),
   precision: z.enum(["city", "country", "approximate"]).default("city"),
   consentedToGeolocation: z.boolean().default(false),
+  radiusKm: z.number().int().min(5).max(500).default(250),
 });
 
 export async function GET(request: Request) {
@@ -24,11 +26,17 @@ export async function PUT(request: Request) {
   try {
     const viewerId = viewerIdFromRequest(request);
     const parsed = preferenceSchema.parse(await request.json());
+    let latitude = parsed.latitude == null ? null : roundCoordinate(parsed.latitude);
+    let longitude = parsed.longitude == null ? null : roundCoordinate(parsed.longitude);
+    let precision = parsed.precision;
+    if (latitude == null && longitude == null && !parsed.consentedToGeolocation) {
+      const geocoded = await geocodePlace(parsed.label, parsed.country).catch(() => null);
+      if (geocoded) { latitude = geocoded.latitude; longitude = geocoded.longitude; precision = "city"; }
+    }
     const preference = await saveLocationPreference({
       userId: viewerId,
       ...parsed,
-      latitude: parsed.latitude == null ? null : roundCoordinate(parsed.latitude),
-      longitude: parsed.longitude == null ? null : roundCoordinate(parsed.longitude),
+      latitude, longitude, precision,
     });
     return attachViewerCookie(Response.json({ preference }), viewerId, request);
   } catch (error) {

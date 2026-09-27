@@ -1,6 +1,7 @@
 import { listReview } from "@/lib/store";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export async function GET(request: Request) {
-  if (process.env.ADMIN_REVIEW_KEY && request.headers.get("x-admin-key") !== process.env.ADMIN_REVIEW_KEY) return Response.json({ error: "Admin authorization required" }, { status: 401 });
+  const denied = requireAdmin(request); if (denied) return denied;
   return Response.json({ data: await listReview() });
 }

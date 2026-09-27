@@ -1,9 +1,10 @@
 import { createSubmission, findOpportunityDuplicate, recordSourceItem } from "@/lib/store";
 import { normalizeCandidate, opportunityFingerprint } from "@/lib/ingestion";
 import type { IngestionCandidate } from "@/lib/types";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export async function POST(request: Request) {
-  if (process.env.ADMIN_REVIEW_KEY && request.headers.get("x-admin-key") !== process.env.ADMIN_REVIEW_KEY) return Response.json({ error: "Admin authorization required" }, { status: 401 });
+  const denied = requireAdmin(request); if (denied) return denied;
   try {
     const candidate = await request.json() as IngestionCandidate;
     const draft = normalizeCandidate(candidate);

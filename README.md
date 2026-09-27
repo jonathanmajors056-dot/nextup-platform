@@ -29,6 +29,8 @@ Copy `.env.example` to `.env.local` and fill in values only on the machine or ho
 
 Never commit `.env.local`, API keys, Supabase service-role keys, or other credentials. The `.gitignore` file excludes local secret files.
 
+In development, admin endpoints remain available for the demo workflow. In production they fail closed unless `ADMIN_REVIEW_KEY` is configured; scheduled expiry uses `CRON_SECRET` when present.
+
 ## Useful commands
 
 ```bash

@@ -4,11 +4,12 @@ import { parseRssFeed } from "@/lib/rss";
 import { findOpportunityDuplicate, createSubmission, recordSourceItem } from "@/lib/store";
 import { opportunityFingerprint } from "@/lib/ingestion";
 import { recordSourceRun } from "@/lib/source-health";
+import { requireAdmin } from "@/lib/admin-auth";
 
 function approvedFeeds() { return (process.env.OPPORTUNITY_RSS_URLS ?? "").split(",").map((url) => url.trim()).filter((url) => /^https?:\/\//i.test(url)); }
 
 export async function POST(request: Request) {
-  if (process.env.ADMIN_REVIEW_KEY && request.headers.get("x-admin-key") !== process.env.ADMIN_REVIEW_KEY) return Response.json({ error: "Admin authorization required" }, { status: 401 });
+  const denied = requireAdmin(request); if (denied) return denied;
   const feeds = approvedFeeds();
   if (!feeds.length) return Response.json({ synced: 0, message: "No approved RSS feeds configured." });
   const results: Array<{ url: string; imported: number; duplicates: number; error?: string }> = [];

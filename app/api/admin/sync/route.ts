@@ -1,7 +1,8 @@
 import { fetchApprovedSource } from "@/lib/fetch-source";
 import { normalizeCandidate } from "@/lib/ingestion";
 import { parseRssFeed } from "@/lib/rss";
-import { findOpportunityDuplicate, createSubmission } from "@/lib/store";
+import { findOpportunityDuplicate, createSubmission, recordSourceItem } from "@/lib/store";
+import { opportunityFingerprint } from "@/lib/ingestion";
 import { recordSourceRun } from "@/lib/source-health";
 
 function approvedFeeds() { return (process.env.OPPORTUNITY_RSS_URLS ?? "").split(",").map((url) => url.trim()).filter((url) => /^https?:\/\//i.test(url)); }
@@ -20,7 +21,8 @@ export async function POST(request: Request) {
         const draft = normalizeCandidate(candidate);
         const existing = await findOpportunityDuplicate({ officialUrl: draft.officialUrl, title: draft.title, organizer: draft.organizer, registrationDeadline: draft.registrationDeadline });
         if (existing) { duplicates += 1; continue; }
-        await createSubmission({ rawText: candidate.rawSource ?? candidate.description ?? candidate.title, sourceType: "rss", sourceUrl: draft.sourceUrl, draft });
+        const opportunity = await createSubmission({ rawText: candidate.rawSource ?? candidate.description ?? candidate.title, sourceType: "rss", sourceUrl: draft.sourceUrl, draft });
+        await recordSourceItem({ fingerprint: opportunityFingerprint(candidate), providerId: candidate.providerId, externalId: candidate.externalId, opportunityId: opportunity.id, sourceUrl: draft.sourceUrl });
         imported += 1;
       }
       recordSourceRun("approved-rss", { ok: true });

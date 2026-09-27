@@ -7,6 +7,7 @@ type StoreState = {
   submissions: Submission[];
   saved: Record<string, string[]>;
   locationPreferences: Record<string, LocationPreference>;
+  sourceItems: Record<string, { providerId: string; externalId?: string; opportunityId: string; sourceUrl: string }>;
 };
 
 const globalStore = globalThis as typeof globalThis & { __opportunityStore?: StoreState };
@@ -16,8 +17,11 @@ const state: StoreState =
     submissions: [],
     saved: {},
     locationPreferences: {},
+    sourceItems: {},
   };
 globalStore.__opportunityStore = state;
+state.locationPreferences ??= {};
+state.sourceItems ??= {};
 
 const hasSupabase = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -221,6 +225,16 @@ export async function archiveExpiredOpportunities() {
     }
   }
   return count;
+}
+
+export async function recordSourceItem(input: { fingerprint: string; providerId: string; externalId?: string; opportunityId: string; sourceUrl: string }) {
+  const client = supabase();
+  if (client) {
+    const { error } = await client.from("opportunity_source_items").upsert({ fingerprint: input.fingerprint, provider_id: input.providerId, external_id: input.externalId ?? null, opportunity_id: input.opportunityId, source_url: input.sourceUrl, last_seen_at: new Date().toISOString() });
+    if (error) throw error;
+  } else {
+    state.sourceItems[input.fingerprint] = { providerId: input.providerId, externalId: input.externalId, opportunityId: input.opportunityId, sourceUrl: input.sourceUrl };
+  }
 }
 
 export async function updateOpportunity(id: string, patch: Partial<Opportunity>) {

@@ -36,7 +36,10 @@ npm run dev
 npx tsc --noEmit
 npm run build
 npm run start
+npm run verify:local
 ```
+
+`npm run verify:local` expects the local dev server or production server to be running and checks the main pages plus the feed, provider, location, expiry, and map-fallback APIs. It requires no credentials.
 
 ## Main routes
 

@@ -1,4 +1,4 @@
-import { createSubmission, findOpportunityDuplicate } from "@/lib/store";
+import { createSubmission, findOpportunityDuplicate, recordSourceItem } from "@/lib/store";
 import { normalizeCandidate, opportunityFingerprint } from "@/lib/ingestion";
 import type { IngestionCandidate } from "@/lib/types";
 
@@ -14,6 +14,7 @@ export async function POST(request: Request) {
     const existing = await findOpportunityDuplicate({ officialUrl: draft.officialUrl, title: draft.title, organizer: draft.organizer, registrationDeadline: draft.registrationDeadline });
     if (existing) return Response.json({ duplicate: true, fingerprint, opportunity: existing }, { status: 200 });
     const opportunity = await createSubmission({ rawText: sourceText, sourceType: draft.sourceType, sourceUrl: draft.sourceUrl, draft });
+    await recordSourceItem({ fingerprint, providerId: candidate.providerId, externalId: candidate.externalId, opportunityId: opportunity.id, sourceUrl: draft.sourceUrl });
     return Response.json({ duplicate: false, fingerprint, opportunity }, { status: 201 });
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : "Invalid ingestion candidate" }, { status: 400 });

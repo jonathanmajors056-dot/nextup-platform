@@ -21,6 +21,8 @@ export const demoOpportunities: Opportunity[] = [
     sourceType: "official",
     format: "hybrid",
     location: "Bengaluru + online",
+    latitude: 12.9716,
+    longitude: 77.5946,
     eventStartDate: daysFromNow(18),
     eventEndDate: daysFromNow(20),
     registrationDeadline: daysFromNow(7),

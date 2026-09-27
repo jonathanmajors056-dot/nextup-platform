@@ -45,6 +45,9 @@ export type Opportunity = {
   lastVerifiedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  distanceKm?: number | null;
 };
 
 export type OpportunityDraft = Omit<Opportunity, "id" | "createdAt" | "updatedAt"> & {
@@ -101,4 +104,17 @@ export type IngestionCandidate = {
   skills?: string[];
   tags?: string[];
   rawSource?: string;
+};
+
+export type LocationPreference = {
+  userId: string;
+  label: string;
+  city: string;
+  region: string;
+  country: string;
+  latitude: number | null;
+  longitude: number | null;
+  precision: "city" | "country" | "approximate";
+  consentedToGeolocation: boolean;
+  updatedAt: string;
 };

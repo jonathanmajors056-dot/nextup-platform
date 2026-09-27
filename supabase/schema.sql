@@ -15,6 +15,8 @@ create table if not exists opportunities (
   source_type text not null default 'manual',
   format text not null default 'online',
   location text,
+  latitude numeric,
+  longitude numeric,
   event_start_date timestamptz,
   event_end_date timestamptz,
   registration_deadline timestamptz,
@@ -73,9 +75,25 @@ create table if not exists opportunity_source_items (
   last_seen_at timestamptz not null default now()
 );
 
+create table if not exists location_preferences (
+  user_id uuid primary key,
+  label text not null,
+  city text not null default '',
+  region text not null default '',
+  country text not null default 'India',
+  latitude numeric,
+  longitude numeric,
+  precision text not null default 'city',
+  consented_to_geolocation boolean not null default false,
+  updated_at timestamptz not null default now()
+);
+
 alter table opportunities enable row level security;
 alter table saved_opportunities enable row level security;
 alter table opportunity_audit_log enable row level security;
+alter table opportunity_sources enable row level security;
+alter table opportunity_source_items enable row level security;
+alter table location_preferences enable row level security;
 
 create policy "published opportunities are public" on opportunities
   for select using (status = 'published');

@@ -5,6 +5,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Opportunity } from "@/lib/types";
 import { categories } from "@/lib/types";
 import { SaveButton } from "./SaveButton";
+import { LocationPreferences } from "./LocationPreferences";
+import type { LocationPreference } from "@/lib/types";
+import { OpportunityMap } from "./OpportunityMap";
 
 function daysLeft(value: string | null) {
   if (!value) return null;
@@ -32,7 +35,7 @@ function OpportunityRow({ item, compact = false }: { item: Opportunity; compact?
   );
 }
 
-export function OpportunityDashboard({ opportunities, savedIds }: { opportunities: Opportunity[]; savedIds: string[] }) {
+export function OpportunityDashboard({ opportunities, savedIds, locationPreference, mapsEnabled }: { opportunities: Opportunity[]; savedIds: string[]; locationPreference: LocationPreference | null; mapsEnabled: boolean }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [format, setFormat] = useState("All");
@@ -94,6 +97,8 @@ export function OpportunityDashboard({ opportunities, savedIds }: { opportunitie
           <div className="command-copy"><span className="eyebrow">From scattered messages to useful signal</span><h2>See the right opportunities before the deadline does.</h2><p>NextUp turns noisy forwards and official sources into a focused, trusted action list for your next move.</p><div className="quick-actions"><a className="button button-light" href="#discover">Explore all <span>⌘1</span></a><a className="button button-quiet" href="#radar">Closing soon <span>{urgent.length}</span></a><Link className="button button-quiet" href="/saved">Saved <span>{saved.length}</span></Link><Link className="button button-quiet" href="/admin">Submit opportunity</Link></div></div>
           <div className="signal-visual" role="img" aria-label="Signals from sources are organized into a clear opportunity feed"><svg viewBox="0 0 360 210" aria-hidden="true"><defs><linearGradient id="signalGlow" x1="0" x2="1"><stop offset="0" stopColor="#75a8ff" stopOpacity=".25" /><stop offset="1" stopColor="#ff8a65" stopOpacity=".8" /></linearGradient></defs><path className="signal-path" d="M20 154 C85 154 78 82 137 90 S184 164 230 126 S274 55 338 58" fill="none" stroke="url(#signalGlow)" strokeWidth="3" /><path className="signal-path faint" d="M20 175 C88 175 92 122 142 126 S190 188 240 151 S290 94 338 98" fill="none" stroke="#8bb5ff" strokeOpacity=".42" strokeWidth="2" /><circle className="signal-node" cx="20" cy="154" r="6" /><circle className="signal-node" cx="137" cy="90" r="7" /><circle className="signal-node" cx="230" cy="126" r="7" /><circle className="signal-node hot" cx="338" cy="58" r="9" /><circle className="signal-orbit" cx="230" cy="126" r="28" fill="none" stroke="#9fc0ff" strokeOpacity=".45" /><text x="15" y="198">sources</text><text x="115" y="67">AI signal</text><text x="273" y="38">action</text></svg></div>
         </section>
+        <LocationPreferences initial={locationPreference} />
+        <OpportunityMap opportunities={opportunities} locationPreference={locationPreference} mapsEnabled={mapsEnabled} />
         <div className="dashboard-stats">
           <div className="stat-card"><span>Live right now</span><strong>{opportunities.length}</strong><small>published opportunities</small></div>
           <div className="stat-card accent"><span>Closing soon</span><strong>{urgent.length}</strong><small>within the next 14 days</small></div>

@@ -1,11 +1,12 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { demoOpportunities } from "./demo-data";
-import type { Opportunity, OpportunityDraft, Submission } from "./types";
+import type { LocationPreference, Opportunity, OpportunityDraft, Submission } from "./types";
 
 type StoreState = {
   opportunities: Opportunity[];
   submissions: Submission[];
   saved: Record<string, string[]>;
+  locationPreferences: Record<string, LocationPreference>;
 };
 
 const globalStore = globalThis as typeof globalThis & { __opportunityStore?: StoreState };
@@ -14,6 +15,7 @@ const state: StoreState =
     opportunities: [...demoOpportunities],
     submissions: [],
     saved: {},
+    locationPreferences: {},
   };
 globalStore.__opportunityStore = state;
 
@@ -51,6 +53,8 @@ function toDb(item: OpportunityDraft) {
     status: item.status,
     raw_source: item.rawSource ?? null,
     last_verified_at: item.lastVerifiedAt,
+    latitude: item.latitude ?? null,
+    longitude: item.longitude ?? null,
   };
 }
 
@@ -82,6 +86,8 @@ function fromDb(row: Record<string, unknown>): Opportunity {
     lastVerifiedAt: (row.last_verified_at as string | null) ?? null,
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
+    latitude: row.latitude === null || row.latitude === undefined ? null : Number(row.latitude),
+    longitude: row.longitude === null || row.longitude === undefined ? null : Number(row.longitude),
   };
 }
 
@@ -97,6 +103,41 @@ export async function listPublished(filters: { q?: string; category?: string; fo
     return applySearch(items, filters.q);
   }
   return applySearch(state.opportunities.filter((item) => item.status === "published"), filters.q, filters.category, filters.format);
+}
+
+export async function getLocationPreference(userId: string) {
+  const client = supabase();
+  if (client) {
+    const { data, error } = await client.from("location_preferences").select("*").eq("user_id", userId).maybeSingle();
+    if (error) throw error;
+    return data ? fromLocationDb(data) : null;
+  }
+  return state.locationPreferences[userId] ?? null;
+}
+
+export async function saveLocationPreference(preference: Omit<LocationPreference, "updatedAt">) {
+  const value: LocationPreference = { ...preference, updatedAt: new Date().toISOString() };
+  const client = supabase();
+  if (client) {
+    const { data, error } = await client.from("location_preferences").upsert({
+      user_id: value.userId, label: value.label, city: value.city, region: value.region, country: value.country,
+      latitude: value.latitude, longitude: value.longitude, precision: value.precision,
+      consented_to_geolocation: value.consentedToGeolocation, updated_at: value.updatedAt,
+    }).select("*").single();
+    if (error) throw error;
+    return fromLocationDb(data);
+  }
+  state.locationPreferences[value.userId] = value;
+  return value;
+}
+
+function fromLocationDb(row: Record<string, unknown>): LocationPreference {
+  return {
+    userId: String(row.user_id), label: String(row.label ?? ""), city: String(row.city ?? ""), region: String(row.region ?? ""), country: String(row.country ?? ""),
+    latitude: row.latitude === null || row.latitude === undefined ? null : Number(row.latitude), longitude: row.longitude === null || row.longitude === undefined ? null : Number(row.longitude),
+    precision: row.precision === "approximate" || row.precision === "country" ? row.precision : "city",
+    consentedToGeolocation: Boolean(row.consented_to_geolocation), updatedAt: String(row.updated_at),
+  };
 }
 
 function applySearch(items: Opportunity[], q?: string, category?: string, format?: string) {

@@ -18,3 +18,15 @@ export async function getViewerId() {
 export function createViewerId() {
   return crypto.randomUUID();
 }
+
+export function viewerIdFromRequest(request: Request) {
+  const value = request.headers.get("cookie")?.match(new RegExp(`(?:^|;\\s*)${VIEWER_COOKIE}=([^;]+)`))?.[1];
+  return isUuid(value) ? value : createViewerId();
+}
+
+export function attachViewerCookie(response: Response, viewerId: string, request: Request) {
+  if (!request.headers.get("cookie")?.includes(`${VIEWER_COOKIE}=`)) {
+    response.headers.append("Set-Cookie", `${VIEWER_COOKIE}=${viewerId}; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax${process.env.NODE_ENV === "production" ? "; Secure" : ""}`);
+  }
+  return response;
+}

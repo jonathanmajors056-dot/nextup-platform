@@ -28,7 +28,7 @@ function OpportunityRow({ item, compact = false }: { item: Opportunity; compact?
   return (
     <Link className={`dashboard-row ${compact ? "compact" : ""}`} href={`/opportunities/${item.id}`} data-opportunity-card tabIndex={0}>
       <span className="row-icon">{item.category.slice(0, 1)}</span>
-      <span className="row-main"><strong>{item.title}</strong><small>{item.organizer} · {item.format} · {statusLabel(item)}</small></span>
+      <span className="row-main"><strong>{item.title}</strong><small>{item.organizer} · {item.format} · {statusLabel(item)}{item.distanceKm != null ? ` · ${item.distanceKm} km away` : ""}</small></span>
       <span className={`row-deadline ${days !== null && days <= 7 ? "urgent" : ""}`}><strong>{days === null ? "Open" : `${days}d`}</strong><small>{dateLabel(item.registrationDeadline)}</small></span>
       {!compact && <span className="row-arrow">↗</span>}
     </Link>

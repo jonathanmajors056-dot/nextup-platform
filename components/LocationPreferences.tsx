@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { LocationPreference } from "@/lib/types";
 
 export function LocationPreferences({ initial }: { initial: LocationPreference | null }) {
@@ -8,6 +9,7 @@ export function LocationPreferences({ initial }: { initial: LocationPreference |
   const [radiusKm, setRadiusKm] = useState(initial?.radiusKm ?? 250);
   const [message, setMessage] = useState(initial ? `Showing nearby events for ${initial.label}.` : "Choose a city to personalize nearby events.");
   const [busy, setBusy] = useState(false);
+  const router = useRouter();
 
   async function save(value: { label: string; latitude: number | null; longitude: number | null; precision: LocationPreference["precision"]; consentedToGeolocation: boolean }) {
     setBusy(true);
@@ -15,6 +17,7 @@ export function LocationPreferences({ initial }: { initial: LocationPreference |
     const data = await response.json().catch(() => ({}));
     setBusy(false);
     setMessage(response.ok ? `Showing nearby events for ${data.preference.label}.` : (data.error || "Could not save location."));
+    if (response.ok) router.refresh();
   }
 
   function useDeviceLocation() {

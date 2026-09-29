@@ -3,8 +3,8 @@ import { assertProductionConfig } from "@/lib/supabase/config";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MeasureSure - Online Verification System",
-  description: "SIH26036 online verification system for weighing and measuring instruments.",
+  title: "nexa/ops — Autonomous workflow control room",
+  description: "Design, run, and observe autonomous multi-agent workflows.",
   icons: { icon: "/favicon.svg" },
 };
 

@@ -7,7 +7,7 @@ NextUp is a lightweight opportunity intelligence platform for curated student an
 - Node.js 22 or newer
 - npm
 - Required for a public launch: Supabase project for persistent data
-- Optional: OpenAI API key for AI-assisted extraction
+- Required for production submissions: OpenAI API key for AI-assisted extraction
 - Recommended for public launch: Upstash Redis for distributed API rate limiting
 
 ## Local setup
@@ -60,6 +60,8 @@ npm run dev
 npx tsc --noEmit
 npm run build
 npm run start
+npm run test:smoke
+npm run test:e2e
 ```
 
 ## Main routes
@@ -74,11 +76,15 @@ npm run start
 
 The recommended workflow is a private GitHub repository connected to Vercel. Clone the repository on a new laptop, run `npm install`, create `.env.local` from `.env.example`, validate locally, then commit and push changes. Vercel should create preview deployments for branches and deploy the production branch.
 
-Configure environment variables in Vercel separately. Do not copy secrets through Git or a ZIP archive.
+Configure environment variables in Vercel separately. Do not copy secrets through Git or a ZIP archive. Production runtime checks fail closed when the Supabase service-role key or OpenAI key is missing; demo storage remains available only for local development and previews.
 
 Every publish, archive, extraction, and submission lifecycle transition writes to `opportunity_audit_log`. API handlers emit JSON request start/completion/failure events for Vercel Runtime Logs, and the app has route, global, and not-found error boundaries so a single rendering failure does not take down the whole user experience.
 
 After applying the database migration, verify the production checklist: browse the feed while signed out, sign in with the admin account, publish one reviewed opportunity, save it as a normal user, test search and “Load more,” and confirm a second Vercel instance sees the same data. Keep Vercel and Supabase in compatible regions, and configure alerts for function errors, database connection saturation, rate-limit backend failures, and elevated p95 latency before announcing the launch.
+
+Run `npm run check:env` after `vercel env pull` to verify the required launch variables without printing their values. Run the read-only capacity gate against a preview or staging URL with `BASE_URL=https://... LOAD_RPS=50 LOAD_DURATION=2m npm run test:load`; increase traffic in steps and stop at the first failed threshold. See [tests/load/README.md](tests/load/README.md) for the staged procedure.
+
+Before promoting a Vercel deployment, run the read-only release smoke audit against the exact public alias: `BASE_URL=https://your-preview.vercel.app npm run test:smoke`. It checks that the browser entry page and API are the same application, then exercises the core negative paths.
 
 ### Authentication and first admin
 

@@ -1,8 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getSupabaseConfig } from "@/lib/supabase/config";
+import { assertProductionConfig, getSupabaseConfig } from "@/lib/supabase/config";
 
 export async function middleware(request: NextRequest) {
+  try {
+    assertProductionConfig();
+  } catch (error) {
+    console.error(JSON.stringify({ level: "error", event: "runtime.config_invalid", error: error instanceof Error ? error.message : "Unknown configuration error" }));
+    return Response.json({ error: "Service temporarily unavailable." }, { status: 503 });
+  }
+
   const config = getSupabaseConfig();
   if (!config) return NextResponse.next({ request });
 

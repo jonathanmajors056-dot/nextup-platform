@@ -22,6 +22,9 @@ export type OpportunityPage = {
 
 type Cursor = { createdAt: string; id: string };
 
+const safeCursorId = /^[A-Za-z0-9_-]{1,120}$/;
+const safeCursorTimestamp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/;
+
 function pageSize(value?: number) {
   return Math.min(Math.max(Number.isFinite(value) ? Number(value) : 24, 1), 50);
 }
@@ -34,7 +37,13 @@ function decodeCursor(value?: string): Cursor | null {
   if (!value) return null;
   try {
     const parsed = JSON.parse(Buffer.from(value, "base64url").toString("utf8")) as Partial<Cursor>;
-    if (typeof parsed.createdAt !== "string" || typeof parsed.id !== "string") return null;
+    if (
+      typeof parsed.createdAt !== "string" ||
+      typeof parsed.id !== "string" ||
+      !safeCursorTimestamp.test(parsed.createdAt) ||
+      Number.isNaN(Date.parse(parsed.createdAt)) ||
+      !safeCursorId.test(parsed.id)
+    ) return null;
     return { createdAt: parsed.createdAt, id: parsed.id };
   } catch {
     return null;

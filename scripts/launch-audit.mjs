@@ -34,12 +34,20 @@ const record = (name) => checks.push(name);
 
 const home = await expectStatus("home page", "/", 200);
 assert(typeof home.body === "string" && home.body.includes("Find one opportunity worth your week."), "home page: expected primary heading");
+assert(home.response.headers.get("x-content-type-options") === "nosniff", "home page: missing X-Content-Type-Options");
+assert(home.response.headers.get("x-frame-options") === "DENY", "home page: missing X-Frame-Options");
+assert(home.response.headers.get("referrer-policy") === "strict-origin-when-cross-origin", "home page: missing Referrer-Policy");
+assert(!home.response.headers.has("x-powered-by"), "home page: framework disclosure header is present");
 record("home page renders");
 
 const feed = await expectStatus("published feed", "/api/opportunities?limit=2", 200);
 assert(Array.isArray(feed.body?.data) && feed.body.data.length > 0, "published feed: expected at least one opportunity");
 assert(typeof feed.body.data[0].id === "string", "published feed: expected stable opportunity id");
 record("published feed returns data");
+
+const injectionCursor = Buffer.from(JSON.stringify({ createdAt: "2026-09-29T12:00:00+00:00", id: "x),status.eq.draft" }), "utf8").toString("base64url");
+await expectStatus("unsafe cursor", `/api/opportunities?cursor=${injectionCursor}`, 200);
+record("unsafe cursor is ignored safely");
 
 const opportunityId = encodeURIComponent(feed.body.data[0].id);
 const detail = await expectStatus("opportunity detail", `/api/opportunities/${opportunityId}`, 200);

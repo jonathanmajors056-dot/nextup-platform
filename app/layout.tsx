@@ -3,9 +3,8 @@ import { assertProductionConfig } from "@/lib/supabase/config";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "nexa/ops — Autonomous workflow control room",
-  description: "Design, run, and observe autonomous multi-agent workflows.",
-  icons: { icon: "/favicon.svg" },
+  title: "Nexa.ai — Think clearly. Build boldly.",
+  description: "A thoughtful AI workspace for clear answers, better code, and forward motion.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

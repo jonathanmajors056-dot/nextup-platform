@@ -1,9 +1,14 @@
 import { z } from "zod";
 import { categories } from "./types";
 
+const httpUrl = z.string().max(2048).url().refine((value) => {
+  const protocol = new URL(value).protocol;
+  return protocol === "http:" || protocol === "https:";
+}, "URL must use http or https");
+
 export const submissionSchema = z.object({
-  rawText: z.string().min(20, "Paste the full opportunity message so the AI can extract it."),
-  sourceUrl: z.string().url().optional().or(z.literal("")),
+  rawText: z.string().min(20, "Paste the full opportunity message so the AI can extract it.").max(30000, "Opportunity messages must be 30,000 characters or less."),
+  sourceUrl: httpUrl.optional().or(z.literal("")),
   sourceType: z.enum(["manual", "whatsapp", "official", "community"]).default("manual"),
 });
 
@@ -13,8 +18,8 @@ export const opportunitySchema = z.object({
   summary: z.string().default(""),
   category: z.enum(categories).default("Other"),
   organizer: z.string().default(""),
-  officialUrl: z.string().url(),
-  sourceUrl: z.string().url().or(z.literal("")),
+  officialUrl: httpUrl,
+  sourceUrl: httpUrl.or(z.literal("")),
   sourceType: z.enum(["manual", "whatsapp", "official", "community"]),
   format: z.enum(["online", "offline", "hybrid"]).default("online"),
   location: z.string().default(""),

@@ -21,3 +21,27 @@ export function requireSupabaseConfig() {
   }
   return config;
 }
+
+const productionRequiredEnv = [
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "OPENAI_API_KEY",
+] as const;
+
+export function isProductionRuntime() {
+  return process.env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build";
+}
+
+export function getMissingProductionEnv() {
+  return productionRequiredEnv.filter((name) => !process.env[name]);
+}
+
+export function assertProductionConfig() {
+  if (!isProductionRuntime()) return;
+
+  const missing = getMissingProductionEnv();
+  if (missing.length > 0) {
+    throw new Error(`Production configuration is incomplete. Missing: ${missing.join(", ")}`);
+  }
+}

@@ -43,6 +43,7 @@ export type Opportunity = {
   status: OpportunityStatus;
   rawSource?: string;
   lastVerifiedAt: string | null;
+  publishedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -59,5 +60,33 @@ export type Submission = {
   sourceType: Opportunity["sourceType"];
   sourceUrl: string;
   createdAt: string;
-  opportunityId: string;
+  status?: "queued" | "processing" | "completed" | "failed";
+  submittedBy?: string | null;
+  opportunityId?: string | null;
+  idempotencyKey?: string | null;
+  attemptCount?: number;
+  errorMessage?: string | null;
+  updatedAt?: string;
+  processedAt?: string | null;
 };
+
+export type AuditAction =
+  | "submission_queued"
+  | "submission_processing"
+  | "submission_completed"
+  | "submission_failed"
+  | "opportunity_extracted"
+  | "opportunity_published"
+  | "opportunity_archived";
+
+export type AuditEntry = {
+  id: string;
+  opportunityId: string | null;
+  actorId: string | null;
+  action: AuditAction | string;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+};
+
+export const applicationStatuses = ["saved", "applying", "applied", "shortlisted", "won", "not_selected"] as const;
+export type ApplicationStatus = (typeof applicationStatuses)[number];

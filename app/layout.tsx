@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "NextUp — verified opportunities",
-  description: "A focused feed of verified opportunities for students and early-career builders.",
+  description: "Find one trusted student opportunity worth your week, with deadlines and source context.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

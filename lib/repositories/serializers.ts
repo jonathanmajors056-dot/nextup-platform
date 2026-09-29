@@ -1,0 +1,62 @@
+import type { Opportunity, OpportunityDraft } from "@/lib/types";
+
+export function toOpportunityDb(item: OpportunityDraft) {
+  return {
+    title: item.title,
+    description: item.description,
+    summary: item.summary,
+    category: item.category,
+    organizer: item.organizer,
+    official_url: item.officialUrl,
+    source_url: item.sourceUrl || null,
+    source_type: item.sourceType,
+    format: item.format,
+    location: item.location,
+    event_start_date: item.eventStartDate,
+    event_end_date: item.eventEndDate,
+    registration_deadline: item.registrationDeadline,
+    eligibility: item.eligibility,
+    fees: item.fees,
+    benefit: item.benefit,
+    skills: item.skills,
+    tags: item.tags,
+    verification_status: item.verificationStatus,
+    ai_confidence: item.aiConfidence,
+    status: item.status,
+    raw_source: item.rawSource ?? null,
+    last_verified_at: item.lastVerifiedAt,
+    published_at: item.publishedAt ?? null,
+  };
+}
+
+export function fromOpportunityDb(row: Record<string, unknown>): Opportunity {
+  return {
+    id: String(row.id),
+    title: String(row.title ?? ""),
+    description: String(row.description ?? ""),
+    summary: String(row.summary ?? ""),
+    category: row.category as Opportunity["category"],
+    organizer: String(row.organizer ?? ""),
+    officialUrl: String(row.official_url ?? ""),
+    sourceUrl: String(row.source_url ?? ""),
+    sourceType: row.source_type as Opportunity["sourceType"],
+    format: row.format as Opportunity["format"],
+    location: String(row.location ?? ""),
+    eventStartDate: (row.event_start_date as string | null) ?? null,
+    eventEndDate: (row.event_end_date as string | null) ?? null,
+    registrationDeadline: (row.registration_deadline as string | null) ?? null,
+    eligibility: String(row.eligibility ?? ""),
+    fees: String(row.fees ?? ""),
+    benefit: String(row.benefit ?? ""),
+    skills: (row.skills as string[]) ?? [],
+    tags: (row.tags as string[]) ?? [],
+    verificationStatus: row.verification_status as Opportunity["verificationStatus"],
+    aiConfidence: Number(row.ai_confidence ?? 0),
+    status: row.status as Opportunity["status"],
+    rawSource: (row.raw_source as string | null) ?? undefined,
+    lastVerifiedAt: (row.last_verified_at as string | null) ?? null,
+    publishedAt: (row.published_at as string | null) ?? null,
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
+  };
+}

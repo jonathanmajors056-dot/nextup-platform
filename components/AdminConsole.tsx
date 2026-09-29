@@ -17,7 +17,19 @@ export function AdminConsole({ initialReview }: { initialReview: Opportunity[] }
     const data = await response.json();
     setBusy(false);
     if (!response.ok) { setMessage(data.error || "Submission failed."); return; }
-    setReview((items) => [data.opportunity, ...items]); setRawText(""); setSourceUrl(""); setMessage("Draft created. Review it below before publishing.");
+    setRawText(""); setSourceUrl("");
+    if (data.opportunity) {
+      setReview((items) => [data.opportunity, ...items]);
+      setMessage("Draft created. Review it below before publishing.");
+      return;
+    }
+    setMessage("Submission queued. The review queue will update when extraction finishes.");
+    window.setTimeout(async () => {
+      const refresh = await fetch("/api/admin/review");
+      if (!refresh.ok) return;
+      const next = await refresh.json() as { data?: Opportunity[] };
+      if (next.data) setReview(next.data);
+    }, 1500);
   }
 
   async function decide(id: string, action: "publish" | "archive") {

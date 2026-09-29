@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "app/api/queues/process-submission/route.ts": {
+      "experimentalTriggers": [
+        {
+          "type": "queue/v2beta",
+          "topic": "nextup-submissions",
+          "retryAfterSeconds": 60
+        }
+      ]
+    }
+  }
+}

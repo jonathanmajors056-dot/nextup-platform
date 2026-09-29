@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "nexa/ops — Autonomous workflow control room",
-  description: "Design, run, and observe autonomous multi-agent workflows.",
+  title: "MeasureSure - Online Verification System",
+  description: "SIH26036 online verification system for weighing and measuring instruments.",
   icons: { icon: "/favicon.svg" },
 };
 

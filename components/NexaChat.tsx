@@ -5,6 +5,7 @@ import { useState } from "react";
 type Agent = { name: string; role: string; color: string; status: "running" | "queued" | "done" };
 
 const workflows = [
+  { name: "Autonomous launch intelligence", meta: "Scout → Atlas → Prism → Relay", updated: "New", active: true },
   { name: "Launch intelligence brief", meta: "Research → Synthesis → Review", updated: "2m ago", active: true },
   { name: "Customer signal triage", meta: "Ingest → Classify → Route", updated: "1h ago" },
   { name: "Competitive watchtower", meta: "Scan → Compare → Alert", updated: "Yesterday" },
@@ -34,7 +35,7 @@ const Icon = ({ name, size = 16 }: { name: string; size?: number }) => {
 };
 
 export function NexaChat() {
-  const [active, setActive] = useState("Launch intelligence brief");
+  const [active, setActive] = useState("Autonomous launch intelligence");
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState(68);
   const [agents, setAgents] = useState(initialAgents);

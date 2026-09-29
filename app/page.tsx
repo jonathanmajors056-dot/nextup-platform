@@ -1,3 +1,3 @@
-import { NexaChat } from "@/components/NexaChat";
+import { VerificationPortal } from "@/components/VerificationPortal";
 
-export default function HomePage() { return <NexaChat />; }
+export default function HomePage() { return <VerificationPortal />; }

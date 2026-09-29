@@ -1,13 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { assertProductionConfig, getSupabaseConfig } from "@/lib/supabase/config";
+import { getSupabaseConfig } from "@/lib/supabase/config";
+import { isValidAccessToken } from "@/lib/access-gate";
 
 export async function middleware(request: NextRequest) {
-  try {
-    assertProductionConfig();
-  } catch (error) {
-    console.error(JSON.stringify({ level: "error", event: "runtime.config_invalid", error: error instanceof Error ? error.message : "Unknown configuration error" }));
-    return Response.json({ error: "Service temporarily unavailable." }, { status: 503 });
+  const { pathname } = request.nextUrl;
+  const accessPath = pathname === "/access" || pathname === "/api/access";
+  const publicPath = pathname.startsWith("/_next") || pathname === "/favicon.ico" || /\.(?:svg|png|jpg|jpeg|gif|webp)$/.test(pathname);
+  const accessCode = process.env.MEASURESURE_ACCESS_CODE;
+  if (accessCode && !accessPath && !publicPath && !(await isValidAccessToken(request.cookies.get("measuresure_access")?.value, accessCode))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/access";
+    url.searchParams.set("next", pathname);
+    return NextResponse.redirect(url);
   }
 
   const config = getSupabaseConfig();

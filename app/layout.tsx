@@ -3,8 +3,8 @@ import { assertProductionConfig } from "@/lib/supabase/config";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Nexa.ai — Think clearly. Build boldly.",
-  description: "A thoughtful AI workspace for clear answers, better code, and forward motion.",
+  title: "dbatu.notes — B.Tech Student Library",
+  description: "Structured notes, question papers, and practical files for DBATU engineering students.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

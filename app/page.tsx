@@ -1,3 +1,3 @@
-import { NexaChat } from "@/components/NexaChat";
+import { NotesHub } from "@/components/NotesHub";
 
-export default function HomePage() { return <NexaChat />; }
+export default function HomePage() { return <NotesHub />; }

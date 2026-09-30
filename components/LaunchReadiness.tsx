@@ -1,6 +1,6 @@
 import type { ReadinessItem } from "@/lib/launch-readiness";
 
-export function LaunchReadiness({ readiness }: { readiness: ReturnType<typeof import("@/lib/launch-readiness").getLaunchReadiness> }) {
+export function LaunchReadiness({ readiness }: { readiness: Awaited<ReturnType<typeof import("@/lib/launch-readiness").getLaunchReadiness>> }) {
   return <section className="card form-card readiness-panel" aria-labelledby="launch-readiness-title">
     <div className="section-heading" style={{ marginTop: 0 }}>
       <div><span className="section-label">Launch control</span><h2 id="launch-readiness-title">Readiness, without guesswork</h2><p>Configuration status is evaluated on the server. Secret values are never displayed.</p></div>

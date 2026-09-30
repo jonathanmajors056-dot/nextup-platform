@@ -6,12 +6,21 @@ export type ReadinessItem = {
   requiredFor: "pilot" | "public" | "optional";
 };
 
+import { createClient } from "@supabase/supabase-js";
+
 function present(value: string | undefined) {
   return Boolean(value?.trim());
 }
 
-export function getLaunchReadiness() {
-  const supabase = present(process.env.NEXT_PUBLIC_SUPABASE_URL) && present(process.env.SUPABASE_SERVICE_ROLE_KEY);
+export async function getLaunchReadiness() {
+  const supabaseConfigured = present(process.env.NEXT_PUBLIC_SUPABASE_URL) && present(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  let schemaReady = false;
+  if (supabaseConfigured) {
+    const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { autoRefreshToken: false, persistSession: false } });
+    const checks = await Promise.all(["opportunities", "saved_opportunities", "news_items"].map((table) => client.from(table).select("id", { head: true, count: "exact" })));
+    schemaReady = checks.every((check) => !check.error);
+  }
+  const supabase = supabaseConfigured && schemaReady;
   const admin = present(process.env.ADMIN_REVIEW_KEY);
   const openai = present(process.env.OPENAI_API_KEY);
   const opportunityFeeds = present(process.env.OPPORTUNITY_RSS_URLS) || present(process.env.OPPORTUNITY_API_URLS);
@@ -20,7 +29,7 @@ export function getLaunchReadiness() {
   const cron = present(process.env.CRON_SECRET);
 
   const items: ReadinessItem[] = [
-    { id: "database", label: "Supabase persistence", configured: supabase, detail: supabase ? "Connected configuration detected" : "Demo fallback is active; apply supabase/schema.sql before pilot data entry", requiredFor: "pilot" },
+    { id: "database", label: "Supabase persistence", configured: supabase, detail: supabase ? "Database configuration and core tables are ready" : supabaseConfigured ? "Credentials exist, but one or more core tables are missing; apply supabase/schema.sql" : "Demo fallback is active; configure Supabase and apply supabase/schema.sql", requiredFor: "pilot" },
     { id: "admin", label: "Admin protection", configured: admin, detail: admin ? "Review endpoints are protected" : "Set ADMIN_REVIEW_KEY before production review operations", requiredFor: "pilot" },
     { id: "ai", label: "AI extraction", configured: openai, detail: openai ? "Draft extraction is available" : "Manual drafts still work; AI extraction is unavailable", requiredFor: "pilot" },
     { id: "opportunity-feeds", label: "Live opportunity feeds", configured: opportunityFeeds, detail: opportunityFeeds ? "Approved RSS/API sources are configured" : "Manual submissions only; add permitted sources", requiredFor: "public" },

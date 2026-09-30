@@ -3,7 +3,7 @@ import { getLaunchReadiness } from "@/lib/launch-readiness";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const readiness = getLaunchReadiness();
+  const readiness = await getLaunchReadiness();
   return Response.json({
     service: "nextup",
     status: readiness.pilotReady ? "ready" : "pilot-setup-required",

@@ -54,6 +54,7 @@ npm run verify:local
 - `/api/admin/ingest` — admin-only normalized ingestion endpoint; creates reviewable drafts and rejects duplicates
 - `/api/admin/sync` — admin-only sync of configured, approved RSS feeds with caching and rate-safe fetch behavior
 - `/api/admin/expire` — scheduled/admin expiry pass that archives past-deadline drafts and listings
+- `/api/health` — non-secret launch-readiness status for operations and deployment checks
 
 ## Current persistence boundary
 
@@ -70,6 +71,8 @@ Provider adapters are represented in `lib/providers.ts` and normalized candidate
 Vercel runs the expiry endpoint daily through `vercel.json`. Configure `CRON_SECRET` in hosting so scheduled requests are authenticated; `ADMIN_REVIEW_KEY` remains the local/manual fallback.
 
 Apply `supabase/schema.sql` to the project before enabling persistence. The schema includes idempotent upgrade statements for latitude/longitude and location radius columns, so it can be safely rerun against the existing pilot database.
+
+The `/admin` control room and `/api/health` endpoint show the same server-side readiness state. A “Pilot ready” state means persistence, protected review operations, AI extraction, and authenticated expiry automation are configured. A “Public ready” state additionally requires approved opportunity and news feeds. Supabase Auth is still the next account milestone; until it is added, students use a browser-scoped anonymous workspace cookie for saves.
 
 ## Deployment
 

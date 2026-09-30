@@ -12,6 +12,9 @@ for (const path of htmlChecks) {
   if (!body.includes("NextUp")) throw new Error(`${path} did not render the NextUp shell`);
 }
 
+const health = await (await request("/api/health")).json();
+if (health.service !== "nextup" || !Array.isArray(health.items)) throw new Error("Health API did not return readiness items");
+
 const feed = await (await request("/api/opportunities?lat=12.9716&lng=77.5946&radiusKm=50")).json();
 if (!Array.isArray(feed.data)) throw new Error("Opportunity API did not return data[]");
 const providers = await (await request("/api/admin/providers")).json();

@@ -27,7 +27,7 @@ When a visitor saves an opportunity, the server assigns a random browser-scoped 
 
 Copy `.env.example` to `.env.local` and fill in values only on the machine or hosting provider that needs them.
 
-Never commit `.env.local`, API keys, Supabase service-role keys, or other credentials. The `.gitignore` file excludes local secret files.
+Never commit `.env.local`, API keys, Supabase service-role keys, or other credentials. The `.gitignore` file excludes local secret files. `NEXT_PUBLIC_SUPABASE_ANON_KEY` is safe to expose to the browser only when paired with proper Supabase RLS; never expose `SUPABASE_SERVICE_ROLE_KEY`.
 
 In development, admin endpoints remain available for the demo workflow. In production they fail closed unless `ADMIN_REVIEW_KEY` is configured; scheduled expiry uses `CRON_SECRET` when present.
 
@@ -60,7 +60,7 @@ npm run verify:local
 
 - Published opportunity reads and admin writes run server-side.
 - Saves are associated with the browser's generated workspace id, not a hardcoded shared student id.
-- Full email/OAuth sign-in is intentionally the next authentication milestone; do not treat the anonymous workspace id as an account identity.
+- `/auth` provides optional Supabase email/password sign-in. When `NEXT_PUBLIC_SUPABASE_ANON_KEY` is absent, the app intentionally falls back to an anonymous browser workspace. Do not treat that fallback id as an account identity.
 
 ## Ingestion foundation
 

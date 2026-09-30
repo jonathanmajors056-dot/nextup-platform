@@ -8,6 +8,7 @@ const navigation = [
   { href: "/newsportal", label: "NewsPortal" },
   { href: "/saved", label: "Saved" },
   { href: "/admin", label: "Admin" },
+  { href: "/auth", label: "Account" },
 ] as const;
 
 export function Shell({ children }: { children: React.ReactNode }) {

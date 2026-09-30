@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { createSupabaseServerClient } from "./supabase/server";
 
 export const VIEWER_COOKIE = "nextup-viewer";
 
@@ -11,8 +12,17 @@ function isUuid(value: string | undefined): value is string {
  * server-only: callers never need to send a user id from the browser.
  */
 export async function getViewerId() {
+  const authenticated = await getAuthenticatedViewerId();
+  if (authenticated) return authenticated;
   const value = (await cookies()).get(VIEWER_COOKIE)?.value;
   return isUuid(value) ? value : "demo-student";
+}
+
+export async function getAuthenticatedViewerId() {
+  const client = await createSupabaseServerClient();
+  if (!client) return null;
+  const { data } = await client.auth.getUser();
+  return data.user?.id ?? null;
 }
 
 export function createViewerId() {

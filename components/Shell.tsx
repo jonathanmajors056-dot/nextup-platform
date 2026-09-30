@@ -1,6 +1,17 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+const navigation = [
+  { href: "/", label: "Discover" },
+  { href: "/newsportal", label: "NewsPortal" },
+  { href: "/saved", label: "Saved" },
+  { href: "/admin", label: "Admin" },
+] as const;
 
 export function Shell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   return (
     <div className="shell">
       <header className="topbar">
@@ -10,11 +21,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <span>NextUp</span>
           </Link>
           <nav className="nav" aria-label="Primary navigation">
-            <span className="topbar-status"><i /> Pilot workspace</span>
-            <Link className="nav-link active" href="/">Discover</Link>
-            <Link className="nav-link" href="/newsportal">NewsPortal</Link>
-            <Link className="nav-link" href="/saved">Saved</Link>
-            <Link className="nav-link" href="/admin">Admin</Link>
+            <span className="topbar-status"><i /> Live pilot workspace</span>
+            {navigation.map((item) => {
+              const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+              return <Link className={`nav-link${active ? " active" : ""}`} href={item.href} aria-current={active ? "page" : undefined} key={item.href}>{item.label}</Link>;
+            })}
           </nav>
         </div>
       </header>

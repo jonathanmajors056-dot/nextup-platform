@@ -40,6 +40,7 @@ export function OpportunityDashboard({ opportunities, savedIds, locationPreferen
   const [category, setCategory] = useState("All");
   const [format, setFormat] = useState("All");
   const [keys, setKeys] = useState<string[]>([]);
+  const keySequenceRef = useRef<string[]>([]);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const filtered = useMemo(() => {
@@ -64,17 +65,19 @@ export function OpportunityDashboard({ opportunities, savedIds, locationPreferen
       if (isTyping) return;
       if (event.key === "?") { event.preventDefault(); setShowShortcuts(true); return; }
       if (event.key === "Escape") { setShowShortcuts(false); return; }
-      if (event.key.toLowerCase() === "g") { setKeys(["g"]); window.setTimeout(() => setKeys([]), 1200); return; }
-      if (keys[0] === "g" && event.key.toLowerCase() === "h") { window.location.href = "/"; return; }
-      if (keys[0] === "g" && event.key.toLowerCase() === "s") { window.location.href = "/saved"; return; }
-      if (keys[0] === "g" && event.key.toLowerCase() === "a") { window.location.href = "/admin"; return; }
+      if (event.key.toLowerCase() === "g") { keySequenceRef.current = ["g"]; setKeys(["g"]); window.setTimeout(() => { keySequenceRef.current = []; setKeys([]); }, 1200); return; }
+      if (keySequenceRef.current[0] === "g" && event.key.toLowerCase() === "h") { window.location.href = "/"; return; }
+      if (keySequenceRef.current[0] === "g" && event.key.toLowerCase() === "s") { window.location.href = "/saved"; return; }
+      if (keySequenceRef.current[0] === "g" && event.key.toLowerCase() === "a") { window.location.href = "/admin"; return; }
       if (["j", "k", "ArrowDown", "ArrowUp"].includes(event.key)) {
         event.preventDefault();
         const cards = Array.from(document.querySelectorAll<HTMLElement>("#discover [data-opportunity-card]"));
         const current = cards.indexOf(document.activeElement as HTMLElement);
         const direction = event.key === "j" || event.key === "ArrowDown" ? 1 : -1;
         cards[Math.min(cards.length - 1, Math.max(0, current + direction))]?.focus();
+        return;
       }
+      if (event.key === "Enter" && document.activeElement instanceof HTMLElement && document.activeElement.matches("[data-opportunity-card]")) { event.preventDefault(); document.activeElement.click(); }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);

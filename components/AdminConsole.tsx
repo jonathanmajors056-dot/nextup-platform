@@ -11,6 +11,16 @@ export function AdminConsole({ initialReview, initialProviders }: { initialRevie
   const [sourceUrl, setSourceUrl] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [adminKey, setAdminKey] = useState("");
+  const [sessionMessage, setSessionMessage] = useState("");
+
+  async function unlock(event: React.FormEvent) {
+    event.preventDefault(); setSessionMessage("");
+    const response = await fetch("/api/admin/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: adminKey }) });
+    const data = await response.json().catch(() => ({}));
+    setSessionMessage(response.ok ? "Admin controls unlocked for this browser session." : data.error || "Could not unlock admin controls.");
+    if (response.ok) setAdminKey("");
+  }
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -32,6 +42,7 @@ export function AdminConsole({ initialReview, initialProviders }: { initialRevie
   return (
     <div className="admin-layout">
       <ProviderHealth initial={initialProviders} />
+      <section className="card form-card" style={{ gridColumn: "1 / -1" }}><div className="section-label">Protected operations</div><h2>Unlock review controls</h2><p>Use the production admin key to enable source sync and approval actions in this browser. The key is exchanged for an HttpOnly session and is not stored in the page.</p><form className="form-grid" onSubmit={unlock}><div className="field-group"><label htmlFor="adminKey">Production admin key</label><input className="field" id="adminKey" type="password" value={adminKey} onChange={(event) => setAdminKey(event.target.value)} autoComplete="off" required /></div><div className="field-group" style={{ alignSelf: "end" }}><button className="button button-primary" type="submit">Unlock controls</button></div></form>{sessionMessage && <p className="provider-message">{sessionMessage}</p>}</section>
       <section className="card form-card">
         <div className="section-heading" style={{ marginTop: 0 }}><div><h2>New opportunity draft</h2><p>Paste a WhatsApp forward or source text. AI will extract a reviewable draft.</p></div></div>
         <form onSubmit={submit} className="form-grid">

@@ -2,13 +2,13 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Shell } from "@/components/Shell";
 import { SaveButton } from "@/components/SaveButton";
-import { getOpportunity } from "@/lib/store";
+import { getOpportunity, isPubliclySourceBacked } from "@/lib/store";
 
 function dateLabel(value: string | null) { return value ? new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "long", year: "numeric" }).format(new Date(value)) : "Not listed"; }
 
 export default async function OpportunityPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const item = await getOpportunity(id);
-  if (!item || item.status !== "published") notFound();
+  if (!item || item.status !== "published" || !isPubliclySourceBacked(item)) notFound();
   return <Shell><main className="main"><Link href="/" style={{ color: "var(--blue)", fontSize: 13, fontWeight: 800 }}>← Back to opportunities</Link><div className="detail-layout" style={{ marginTop: 20 }}><article className="card detail-main"><div className="card-top"><span className="pill">{item.category}</span><span className="verified">✓ {item.verificationStatus === "officially_verified" ? "Officially verified" : "Community reviewed"}</span></div><h1>{item.title}</h1><p className="detail-summary">{item.summary}</p><div className="detail-section"><h2>About this opportunity</h2><p>{item.description}</p></div><div className="detail-section"><h2>Who it is for</h2><p>{item.eligibility || "Eligibility details are being confirmed by the organizer."}</p></div><div className="detail-section"><h2>Skills and tags</h2><div className="tags">{[...item.skills, ...item.tags].map((tag) => <span className="tag" key={tag}>{tag}</span>)}</div></div></article><aside className="card detail-side"><div className="fact-list"><div className="fact"><span className="fact-icon" /><div><span>Registration deadline</span><strong>{dateLabel(item.registrationDeadline)}</strong></div></div><div className="fact"><span className="fact-icon" /><div><span>Format</span><strong>{item.format} · {item.location}</strong></div></div><div className="fact"><span className="fact-icon" /><div><span>Organizer</span><strong>{item.organizer}</strong></div></div><div className="fact"><span className="fact-icon" /><div><span>Fees</span><strong>{item.fees || "Check official source"}</strong></div></div><div className="fact"><span className="fact-icon" /><div><span>Benefit</span><strong>{item.benefit || "See official source"}</strong></div></div></div><div className="button-row" style={{ marginTop: 24 }}><a className="button button-primary" href={item.officialUrl} target="_blank" rel="noreferrer">Open official source ↗</a><SaveButton opportunityId={item.id} /></div><p style={{ color: "var(--muted)", fontSize: 12, lineHeight: 1.5, margin: "18px 0 0" }}>Source: {item.sourceUrl || item.officialUrl}</p></aside></div></main></Shell>;
 }

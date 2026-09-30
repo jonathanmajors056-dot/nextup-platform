@@ -25,6 +25,20 @@ state.sourceItems ??= {};
 
 const hasSupabase = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
 
+const PLACEHOLDER_SOURCE_HOSTS = new Set(["example.com", "www.example.com"]);
+
+export function isPubliclySourceBacked(item: Pick<Opportunity, "officialUrl" | "sourceUrl">) {
+  const values = [item.officialUrl, item.sourceUrl].filter(Boolean);
+  if (!values.length) return false;
+  return values.every((value) => {
+    try {
+      return !PLACEHOLDER_SOURCE_HOSTS.has(new URL(value).hostname.toLowerCase());
+    } catch {
+      return false;
+    }
+  });
+}
+
 function isMissingSchema(error: unknown) {
   return Boolean(error && typeof error === "object" && "code" in error && (error as { code?: string }).code === "PGRST205");
 }
@@ -107,10 +121,10 @@ export async function listPublished(filters: { q?: string; category?: string; fo
     if (filters.format && filters.format !== "All") query = query.eq("format", filters.format);
     const { data, error } = await query;
     if (error) { if (isMissingSchema(error)) return applySearch(state.opportunities.filter((item) => item.status === "published"), filters.q, filters.category, filters.format); throw error; }
-    const items = (data ?? []).map(fromDb);
+    const items = (data ?? []).map(fromDb).filter(isPubliclySourceBacked);
     return applySearch(items, filters.q);
   }
-  return applySearch(state.opportunities.filter((item) => item.status === "published"), filters.q, filters.category, filters.format);
+  return applySearch(state.opportunities.filter((item) => item.status === "published" && isPubliclySourceBacked(item)), filters.q, filters.category, filters.format);
 }
 
 export async function getLocationPreference(userId: string) {

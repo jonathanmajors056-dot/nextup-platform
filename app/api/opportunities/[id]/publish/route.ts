@@ -1,4 +1,4 @@
-import { getOpportunity, updateOpportunity } from "@/lib/store";
+import { getOpportunity, isPubliclySourceBacked, updateOpportunity } from "@/lib/store";
 import { requireAdmin } from "@/lib/admin-auth";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -6,6 +6,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   const opportunity = await getOpportunity(id);
   if (!opportunity) return Response.json({ error: "Opportunity not found" }, { status: 404 });
+  if (!isPubliclySourceBacked(opportunity)) return Response.json({ error: "Add a real official source URL before publishing this opportunity." }, { status: 422 });
   const updated = await updateOpportunity(id, { status: "published", verificationStatus: opportunity.verificationStatus === "awaiting_review" ? "community_submitted" : opportunity.verificationStatus, lastVerifiedAt: new Date().toISOString() });
   return Response.json({ opportunity: updated });
 }

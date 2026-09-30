@@ -9,6 +9,15 @@ import { requireAdmin } from "@/lib/admin-auth";
 
 function approvedFeeds(value: string | undefined) { return (value ?? "").split(",").map((url) => url.trim()).filter((url) => /^https?:\/\//i.test(url)); }
 
+function describeError(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object") {
+    const value = error as { message?: unknown; code?: unknown; details?: unknown; hint?: unknown };
+    return [value.message, value.code, value.details, value.hint].filter((part) => typeof part === "string" && part.trim()).join(" · ") || "Unknown source error";
+  }
+  return "Unknown source error";
+}
+
 export async function POST(request: Request) {
   const denied = requireAdmin(request); if (denied) return denied;
   const feeds = [
@@ -36,7 +45,7 @@ export async function POST(request: Request) {
       recordSourceRun(healthId, { ok: true });
       results.push({ url, imported, duplicates });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown source error";
+      const message = describeError(error);
       recordSourceRun(healthId, { ok: false, error: message });
       results.push({ url, imported: 0, duplicates: 0, error: message });
     }

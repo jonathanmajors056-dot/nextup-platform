@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-export function SaveButton({ opportunityId }: { opportunityId: string }) {
-  const [saved, setSaved] = useState(false);
+export function SaveButton({ opportunityId, initialSaved = false }: { opportunityId: string; initialSaved?: boolean }) {
+  const [saved, setSaved] = useState(initialSaved);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
 

@@ -1,6 +1,9 @@
 import { listPublished } from "@/lib/store";
 import { rankByLocation } from "@/lib/geo";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function numberParam(value: string | null) {
   const parsed = value == null ? NaN : Number(value);
   return Number.isFinite(parsed) ? parsed : null;
@@ -12,5 +15,5 @@ export async function GET(request: Request) {
   const longitude = numberParam(searchParams.get("lng"));
   const radiusKm = Math.min(500, Math.max(1, numberParam(searchParams.get("radiusKm")) ?? 250));
   const data = rankByLocation(await listPublished({ q: searchParams.get("q") ?? undefined, category: searchParams.get("category") ?? undefined, format: searchParams.get("format") ?? undefined }), latitude != null && longitude != null ? { latitude, longitude } : null, radiusKm);
-  return Response.json({ data });
+  return Response.json({ data }, { headers: { "Cache-Control": "no-store, max-age=0" } });
 }

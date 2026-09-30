@@ -17,7 +17,10 @@ export async function getLaunchReadiness() {
   let schemaReady = false;
   if (supabaseConfigured) {
     const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { autoRefreshToken: false, persistSession: false } });
-    const checks = await Promise.all(["opportunities", "saved_opportunities", "news_items"].map((table) => client.from(table).select("id", { head: true, count: "exact" })));
+    // A real row query is intentional here. Supabase's HEAD/count path can
+    // report a successful response from schema cache even when a table is not
+    // actually queryable by the service-role client used by ingestion.
+    const checks = await Promise.all(["opportunities", "saved_opportunities", "news_items"].map((table) => client.from(table).select("id").limit(1)));
     schemaReady = checks.every((check) => !check.error);
   }
   const supabase = supabaseConfigured && schemaReady;

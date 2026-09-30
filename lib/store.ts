@@ -274,7 +274,7 @@ export async function listSaved(userId: string) {
   const client = supabase();
   if (client) {
     const { data, error } = await client.from("saved_opportunities").select("opportunity_id").eq("user_id", userId);
-    if (error) throw error;
+    if (error) { if (isMissingSchema(error)) return state.saved[userId] ?? []; throw error; }
     return (data ?? []).map((row) => String(row.opportunity_id));
   }
   return state.saved[userId] ?? [];

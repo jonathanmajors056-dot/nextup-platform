@@ -103,3 +103,57 @@ alter table location_preferences enable row level security;
 
 create policy "published opportunities are public" on opportunities
   for select using (status = 'published');
+
+-- NewsPortal tables. Stories remain attributed to their canonical source and are
+-- never published by ingestion without an explicit review decision.
+create table if not exists news_items (
+  id uuid primary key default gen_random_uuid(),
+  headline text not null,
+  summary text not null default '',
+  publisher text not null,
+  canonical_url text not null unique,
+  source_url text not null,
+  source_type text not null default 'rss',
+  author text not null default '',
+  published_at timestamptz not null,
+  updated_at timestamptz,
+  image_url text,
+  video_url text,
+  category text not null default 'AI',
+  tags text[] not null default '{}',
+  topics text[] not null default '{}',
+  geography text not null default 'Global',
+  entities text[] not null default '{}',
+  language text not null default 'en',
+  reading_minutes integer not null default 1,
+  fingerprint text not null unique,
+  verification_status text not null default 'awaiting_review',
+  status text not null default 'draft',
+  ingested_at timestamptz not null default now(),
+  fresh_until timestamptz not null,
+  is_breaking boolean not null default false,
+  is_sponsored boolean not null default false
+);
+
+create table if not exists saved_news (
+  user_id uuid not null,
+  news_id uuid not null references news_items(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (user_id, news_id)
+);
+
+create table if not exists news_audit_log (
+  id uuid primary key default gen_random_uuid(),
+  news_id uuid references news_items(id) on delete cascade,
+  actor_id uuid,
+  action text not null,
+  metadata jsonb not null default '{}',
+  created_at timestamptz not null default now()
+);
+
+alter table news_items enable row level security;
+alter table saved_news enable row level security;
+alter table news_audit_log enable row level security;
+
+create policy "published news is public" on news_items
+  for select using (status = 'published');

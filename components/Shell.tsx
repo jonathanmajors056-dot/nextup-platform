@@ -12,6 +12,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <nav className="nav" aria-label="Primary navigation">
             <span className="topbar-status"><i /> Pilot workspace</span>
             <Link className="nav-link active" href="/">Discover</Link>
+            <Link className="nav-link" href="/newsportal">NewsPortal</Link>
             <Link className="nav-link" href="/saved">Saved</Link>
             <Link className="nav-link" href="/admin">Admin</Link>
           </nav>

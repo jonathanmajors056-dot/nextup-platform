@@ -6,7 +6,7 @@ async function request(path, options) {
   return response;
 }
 
-const htmlChecks = ["/", "/admin", "/saved", "/opportunities/opportunity-ai-hackathon"];
+const htmlChecks = ["/", "/admin", "/saved", "/opportunities/opportunity-ai-hackathon", "/newsportal", "/newsportal/news-ai-india"];
 for (const path of htmlChecks) {
   const body = await (await request(path)).text();
   if (!body.includes("NextUp")) throw new Error(`${path} did not render the NextUp shell`);
@@ -24,4 +24,11 @@ if (typeof expiry.archived !== "number") throw new Error("Expiry API did not ret
 const mapResponse = await fetch(`${base}/api/maps/static?center=12.9716%2C77.5946`);
 if (![200, 503].includes(mapResponse.status)) throw new Error(`Map fallback returned unexpected ${mapResponse.status}`);
 
-console.log(`NextUp local verification passed: ${feed.data.length} opportunities, ${providers.providers.length} providers, map=${mapResponse.status}.`);
+const news = await (await request("/api/news")).json();
+if (!Array.isArray(news.items) || news.items.length === 0) throw new Error("News API did not return items[]");
+const videos = await (await request("/api/news/videos")).json();
+if (!Array.isArray(videos.items)) throw new Error("News video API did not return items[]");
+const newsHealth = await (await request("/api/news/sources/health")).json();
+if (!Array.isArray(newsHealth.providers)) throw new Error("News source health API did not return providers[]");
+
+console.log(`NextUp local verification passed: ${feed.data.length} opportunities, ${news.items.length} news stories, ${providers.providers.length} opportunity providers, ${newsHealth.providers.length} news providers, map=${mapResponse.status}.`);

@@ -77,6 +77,14 @@ The recommended workflow is a private GitHub repository connected to Vercel. Clo
 
 Configure environment variables in Vercel separately. Do not copy secrets through Git or a ZIP archive.
 
+## NewsPortal
+
+`/newsportal` provides a live-style technology news experience covering India and global technology. It preserves source attribution and sends readers to the publisher’s canonical story instead of republishing full articles. The local fallback includes clearly marked demo stories. Live ingestion is designed for approved RSS/Atom feeds, licensed APIs, publisher feeds, and permitted video metadata.
+
+NewsPortal routes include `/api/news`, `/api/news/search`, `/api/news/trending`, `/api/news/videos`, `/api/news/:id`, `/api/news/:id/save`, `/api/news/sources/health`, and admin-only provider, ingestion, publish, and archive routes under `/api/admin/news`.
+
+Optional NewsPortal environment variables are listed in `.env.example`: `NEWS_RSS_URLS`, `NEWS_API_URLS`, `NEWS_VIDEO_RSS_URLS`, and `NEWS_API_KEY`. Keep provider credentials server-side. Configure only sources whose terms permit automated ingestion and linking. Video content is embedded or linked from the original provider; it is not downloaded or re-hosted.
+
 ## Data and trust model
 
 Opportunities require review before publication. Published listings retain their source and verification state. The application does not scrape personal WhatsApp accounts; future WhatsApp ingestion should use a dedicated official WhatsApp Business integration.

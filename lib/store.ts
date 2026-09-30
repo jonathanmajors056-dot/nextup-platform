@@ -25,6 +25,10 @@ state.sourceItems ??= {};
 
 const hasSupabase = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
 
+function isMissingSchema(error: unknown) {
+  return Boolean(error && typeof error === "object" && "code" in error && (error as { code?: string }).code === "PGRST205");
+}
+
 function supabase(): SupabaseClient | null {
   if (!hasSupabase) return null;
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
@@ -102,7 +106,7 @@ export async function listPublished(filters: { q?: string; category?: string; fo
     if (filters.category && filters.category !== "All") query = query.eq("category", filters.category);
     if (filters.format && filters.format !== "All") query = query.eq("format", filters.format);
     const { data, error } = await query;
-    if (error) throw error;
+    if (error) { if (isMissingSchema(error)) return applySearch(state.opportunities.filter((item) => item.status === "published"), filters.q, filters.category, filters.format); throw error; }
     const items = (data ?? []).map(fromDb);
     return applySearch(items, filters.q);
   }
@@ -113,7 +117,7 @@ export async function getLocationPreference(userId: string) {
   const client = supabase();
   if (client) {
     const { data, error } = await client.from("location_preferences").select("*").eq("user_id", userId).maybeSingle();
-    if (error) throw error;
+    if (error) { if (isMissingSchema(error)) return state.locationPreferences[userId] ?? null; throw error; }
     return data ? fromLocationDb(data) : null;
   }
   return state.locationPreferences[userId] ?? null;
@@ -128,7 +132,7 @@ export async function saveLocationPreference(preference: Omit<LocationPreference
       latitude: value.latitude, longitude: value.longitude, precision: value.precision,
       consented_to_geolocation: value.consentedToGeolocation, radius_km: value.radiusKm, updated_at: value.updatedAt,
     }).select("*").single();
-    if (error) throw error;
+    if (error) { if (isMissingSchema(error)) return state.locationPreferences[value.userId] ?? value; throw error; }
     return fromLocationDb(data);
   }
   state.locationPreferences[value.userId] = value;
@@ -159,7 +163,7 @@ export async function getOpportunity(id: string) {
   const client = supabase();
   if (client) {
     const { data, error } = await client.from("opportunities").select("*").eq("id", id).maybeSingle();
-    if (error) throw error;
+    if (error) { if (isMissingSchema(error)) return state.opportunities.find((item) => item.id === id) ?? null; throw error; }
     return data ? fromDb(data) : null;
   }
   return state.opportunities.find((item) => item.id === id) ?? null;
@@ -204,7 +208,7 @@ export async function listReview() {
   const client = supabase();
   if (client) {
     const { data, error } = await client.from("opportunities").select("*").eq("status", "draft").order("created_at", { ascending: false });
-    if (error) throw error;
+    if (error) { if (isMissingSchema(error)) return state.opportunities.filter((item) => item.status === "draft"); throw error; }
     return (data ?? []).map(fromDb);
   }
   return state.opportunities.filter((item) => item.status === "draft");

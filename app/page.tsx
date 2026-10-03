@@ -13,7 +13,7 @@ async function safeRead<T>(label: string, read: () => Promise<T>, fallback: T) {
 }
 
 export default async function HomePage() {
-  const viewerId = await getViewerId();
+  const viewerId = await safeRead("viewer_identity", getViewerId, crypto.randomUUID());
   const preference = await safeRead("location_preferences", () => getLocationPreference(viewerId), null);
   const published = await safeRead("opportunities", () => listPublished(), []);
   const opportunities = rankByLocation(published, preference?.latitude != null && preference.longitude != null ? { latitude: preference.latitude, longitude: preference.longitude } : null, preference?.radiusKm ?? 250);

@@ -3,6 +3,7 @@ import { getLocationPreference, saveLocationPreference } from "@/lib/store";
 import { roundCoordinate } from "@/lib/geo";
 import { geocodePlace } from "@/lib/geocoding";
 import { z } from "zod";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 const preferenceSchema = z.object({
   label: z.string().trim().min(1).max(120),
@@ -23,6 +24,7 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const limited = await enforceRateLimit(request, "locations"); if (limited) return limited;
   try {
     const viewerId = viewerIdFromRequest(request);
     const parsed = preferenceSchema.parse(await request.json());

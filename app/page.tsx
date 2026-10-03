@@ -9,5 +9,5 @@ export default async function HomePage() {
   const preference = await getLocationPreference(viewerId);
   const opportunities = rankByLocation(await listPublished(), preference?.latitude != null && preference.longitude != null ? { latitude: preference.latitude, longitude: preference.longitude } : null, preference?.radiusKm ?? 250);
   const savedIds = await listSaved(viewerId);
-  return <Shell><main className="main dashboard-main"><OpportunityDashboard opportunities={opportunities} savedIds={savedIds} locationPreference={preference} mapsEnabled={Boolean(process.env.GOOGLE_MAPS_API_KEY)} /></main></Shell>;
+  return <Shell><main className="main dashboard-main"><OpportunityDashboard opportunities={opportunities} savedIds={savedIds} locationPreference={preference} mapsEnabled={Boolean(process.env.GOOGLE_MAPS_API_KEY && process.env.GOOGLE_GEOCODING_API_KEY)} /></main></Shell>;
 }

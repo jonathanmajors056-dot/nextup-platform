@@ -1,0 +1,5 @@
+import { Shell } from "@/components/Shell";
+
+export default function TermsPage() {
+  return <Shell><main className="main legal-page"><span className="eyebrow">NextUp · India</span><h1>Terms of use</h1><p>NextUp is an India-focused opportunity discovery pilot operated under the NextUp name.</p><h2>Listings</h2><p>Listings are curated from organizer links, approved feeds, and community submissions. Human review reduces risk but does not guarantee that an organizer will keep an event open, free, or unchanged. Always confirm details on the official source.</p><h2>Acceptable use</h2><p>Use the service for lawful discovery and sharing. Do not submit spam, malicious links, private conversations, or content you do not have permission to share.</p><h2>Pilot limitations</h2><p>Feeds, maps, AI extraction, and saved items may be unavailable during maintenance. NextUp is not the organizer of listed events and is not responsible for applications, payments, travel, or outcomes.</p><h2>Contact</h2><p>Support: <a href="mailto:tajfaizan254@gmail.com">tajfaizan254@gmail.com</a>.</p></main></Shell>;
+}

@@ -8,6 +8,7 @@ NextUp is a lightweight opportunity intelligence platform for curated student an
 - npm
 - Optional: Supabase project for persistent data and authentication
 - Optional: OpenAI API key for AI-assisted extraction
+- Optional: Upstash Redis credentials for production rate limiting
 
 ## Local setup
 
@@ -55,6 +56,7 @@ npm run verify:local
 - `/api/admin/sync` — admin-only sync of configured, approved RSS feeds with caching and rate-safe fetch behavior
 - `/api/admin/expire` — scheduled/admin expiry pass that archives past-deadline drafts and listings
 - `/api/health` — non-secret launch-readiness status for operations and deployment checks
+- `/privacy`, `/terms`, `/support` — pilot trust, usage, and contact pages
 
 ## Current persistence boundary
 
@@ -74,11 +76,15 @@ Apply `supabase/schema.sql` to the project before enabling persistence. The sche
 
 The `/admin` control room and `/api/health` endpoint show the same server-side readiness state. A “Pilot ready” state means persistence, protected review operations, AI extraction, and authenticated expiry automation are configured. A “Public ready” state additionally requires approved opportunity and news feeds. Supabase Auth is still the next account milestone; until it is added, students use a browser-scoped anonymous workspace cookie for saves.
 
+Production also requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. They enable route-level limits for submissions, saves, location updates, admin sessions, and sync operations. Protected admin operations fail closed when rate limiting is not configured. Public feeds reject placeholder hosts such as `example.com`, and every database-backed moderation or ingestion action writes to an audit log.
+
 ## Deployment
 
 The recommended workflow is a private GitHub repository connected to Vercel. Clone the repository on a new laptop, run `npm install`, create `.env.local` from `.env.example`, validate locally, then commit and push changes. Vercel should create preview deployments for branches and deploy the production branch.
 
 Configure environment variables in Vercel separately. Do not copy secrets through Git or a ZIP archive.
+
+NextUp is operated in India. Support and privacy contact: `tajfaizan254@gmail.com`. Enable Vercel Runtime Logs, Web Analytics, and Speed Insights from the project dashboard; the app does not expose provider secrets to the browser.
 
 ## NewsPortal
 

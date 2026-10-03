@@ -1,6 +1,8 @@
 import { ADMIN_SESSION_COOKIE, adminSessionToken } from "@/lib/admin-auth";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const limited = await enforceRateLimit(request, "adminSession", "admin-session"); if (limited) return limited;
   const configuredKey = process.env.ADMIN_REVIEW_KEY;
   if (!configuredKey) return Response.json({ error: "Admin access is not configured." }, { status: 503 });
   const body = await request.json().catch(() => ({}));

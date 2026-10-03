@@ -6,6 +6,8 @@ import { findOpportunityDuplicate, createSubmission, recordSourceItem } from "@/
 import { opportunityFingerprint } from "@/lib/ingestion";
 import { recordSourceRun } from "@/lib/source-health";
 import { requireAdmin } from "@/lib/admin-auth";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { recordOpportunityAudit } from "@/lib/audit";
 
 function approvedFeeds(value: string | undefined) { return (value ?? "").split(",").map((url) => url.trim()).filter((url) => /^https?:\/\//i.test(url)); }
 
@@ -20,6 +22,7 @@ function describeError(error: unknown) {
 
 export async function POST(request: Request) {
   const denied = requireAdmin(request); if (denied) return denied;
+  const limited = await enforceRateLimit(request, "adminSync", "opportunity-sync", true); if (limited) return limited;
   const feeds = [
     ...approvedFeeds(process.env.OPPORTUNITY_RSS_URLS).map((url) => ({ url, kind: "rss" as const })),
     ...approvedFeeds(process.env.OPPORTUNITY_API_URLS).map((url) => ({ url, kind: "api" as const })),
@@ -40,6 +43,7 @@ export async function POST(request: Request) {
         if (existing) { duplicates += 1; continue; }
         const opportunity = await createSubmission({ rawText: candidate.rawSource ?? candidate.description ?? candidate.title, sourceType: feed.kind, sourceUrl: draft.sourceUrl, draft });
         await recordSourceItem({ fingerprint: opportunityFingerprint(candidate), providerId: candidate.providerId, externalId: candidate.externalId, opportunityId: opportunity.id, sourceUrl: draft.sourceUrl });
+        await recordOpportunityAudit({ opportunityId: opportunity.id, action: "source_sync", metadata: { providerId: candidate.providerId, sourceType: feed.kind, aiConfidence: opportunity.aiConfidence } });
         imported += 1;
       }
       recordSourceRun(healthId, { ok: true });

@@ -1,7 +1,9 @@
 import { getOpportunity, saveOpportunity } from "@/lib/store";
 import { createViewerId, getAuthenticatedViewerId, VIEWER_COOKIE } from "@/lib/identity";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const limited = await enforceRateLimit(request, "saves", "opportunity-save"); if (limited) return limited;
   const { id } = await params;
   if (!(await getOpportunity(id))) return Response.json({ error: "Opportunity not found" }, { status: 404 });
   const authenticatedViewer = await getAuthenticatedViewerId();

@@ -1,0 +1,5 @@
+import { Shell } from "@/components/Shell";
+
+export default function PrivacyPage() {
+  return <Shell><main className="main legal-page"><span className="eyebrow">NextUp · India</span><h1>Privacy</h1><p>NextUp helps students discover opportunities. This pilot stores only the information needed to operate the service.</p><h2>What we collect</h2><p>We may store submitted opportunity content, account identifiers, saved opportunities, and an approximate city or region when you choose to personalize results. Precise device location is not stored by default.</p><h2>Sources and AI</h2><p>Listings retain their official source links. AI may structure submitted text, but a human must review and approve every listing before publication.</p><h2>External links and WhatsApp</h2><p>Official links open on third-party sites. NextUp does not scrape personal WhatsApp conversations. A future WhatsApp Business intake will process only messages sent to the dedicated business number.</p><h2>Deletion and contact</h2><p>For privacy questions or deletion requests, contact <a href="mailto:tajfaizan254@gmail.com">tajfaizan254@gmail.com</a>.</p></main></Shell>;
+}

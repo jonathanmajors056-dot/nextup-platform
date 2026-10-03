@@ -1,8 +1,10 @@
 import { extractOpportunity } from "@/lib/ai";
 import { createSubmission } from "@/lib/store";
 import { submissionSchema } from "@/lib/validation";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const limited = await enforceRateLimit(request, "submissions"); if (limited) return limited;
   try {
     const body = submissionSchema.parse(await request.json());
     const draft = await extractOpportunity(body.rawText, body.sourceUrl ?? "", body.sourceType);

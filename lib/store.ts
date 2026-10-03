@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { demoOpportunities } from "./demo-data";
 import type { LocationPreference, Opportunity, OpportunityDraft, Submission } from "./types";
+import { recordOpportunityAudit } from "./audit";
 
 type StoreState = {
   opportunities: Opportunity[];
@@ -211,10 +212,13 @@ export async function createSubmission(input: { rawText: string; sourceType: Sub
   if (client) {
     const { data, error } = await client.from("opportunities").insert(toDb(opportunity)).select("*").single();
     if (error) throw error;
-    return fromDb(data);
+    const saved = fromDb(data);
+    await recordOpportunityAudit({ opportunityId: saved.id, action: "draft_created", metadata: { sourceType: input.sourceType, aiConfidence: saved.aiConfidence, hasSourceUrl: Boolean(saved.sourceUrl || saved.officialUrl) } });
+    return saved;
   }
   state.opportunities.unshift(opportunity);
   state.submissions.push({ id: crypto.randomUUID(), rawText: input.rawText, sourceType: input.sourceType, sourceUrl: input.sourceUrl, createdAt: now, opportunityId: opportunity.id });
+  await recordOpportunityAudit({ opportunityId: opportunity.id, action: "draft_created", metadata: { sourceType: input.sourceType, aiConfidence: opportunity.aiConfidence, hasSourceUrl: Boolean(opportunity.sourceUrl || opportunity.officialUrl) } });
   return opportunity;
 }
 
@@ -234,7 +238,9 @@ export async function archiveExpiredOpportunities() {
   if (client) {
     const { data, error } = await client.from("opportunities").update({ status: "archived", verification_status: "expired", updated_at: now }).lt("registration_deadline", now).in("status", ["published", "draft"]).select("id");
     if (error) throw error;
-    return data?.length ?? 0;
+    const archived = data?.length ?? 0;
+    await Promise.all((data ?? []).map((row) => recordOpportunityAudit({ opportunityId: String(row.id), action: "expiry", metadata: { reason: "registration_deadline_elapsed" } })));
+    return archived;
   }
   let count = 0;
   for (const item of state.opportunities) {

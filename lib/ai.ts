@@ -27,7 +27,7 @@ const extractionSchema = {
 };
 
 function fallback(rawText: string, sourceUrl: string): OpportunityDraft {
-  const url = sourceUrl || rawText.match(/https?:\/\/[^\s)]+/)?.[0] || "https://example.com/verify-source";
+  const url = sourceUrl || rawText.match(/https?:\/\/[^\s)]+/)?.[0] || "";
   const firstLine = rawText.split(/\r?\n/).find((line) => line.trim())?.trim() || "New student opportunity";
   const deadlineMatch = rawText.match(/(?:deadline|last date|register by)[:\s-]*([^\n]+)/i);
   const category = /hackathon/i.test(rawText) ? "Hackathon" : /scholar/i.test(rawText) ? "Scholarship" : /intern/i.test(rawText) ? "Internship" : /workshop/i.test(rawText) ? "Workshop" : "Other";

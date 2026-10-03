@@ -15,7 +15,11 @@ export async function getViewerId() {
   const authenticated = await getAuthenticatedViewerId();
   if (authenticated) return authenticated;
   const value = (await cookies()).get(VIEWER_COOKIE)?.value;
-  return isUuid(value) ? value : "demo-student";
+  if (isUuid(value)) return value;
+  // Supabase UUID columns cannot accept the old demo sentinel. A first-time
+  // visitor gets a valid anonymous workspace id; the save API persists it in
+  // an HttpOnly cookie for subsequent requests.
+  return process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY ? crypto.randomUUID() : "demo-student";
 }
 
 export async function getAuthenticatedViewerId() {

@@ -1,4 +1,4 @@
-import type { LearningEvent } from "./learning-engine";
+import { normalizeLearningEvent, type LearningEvent } from "./learning-engine";
 
 const VIEWER_COOKIE = "nextup-viewer";
 const LEARNING_COOKIE = "nextup-learning";
@@ -25,7 +25,7 @@ export function loadCookieLearning(request: Request) {
   try {
     const decoded = Buffer.from(value, "base64url").toString("utf8");
     const parsed = JSON.parse(decoded) as unknown;
-    return Array.isArray(parsed) ? parsed.filter((event): event is LearningEvent => Boolean(event) && typeof event === "object" && typeof (event as LearningEvent).timestamp === "string" && typeof (event as LearningEvent).type === "string").slice(-40) : [];
+    return Array.isArray(parsed) ? parsed.map(normalizeLearningEvent).filter((event): event is LearningEvent => Boolean(event)).slice(-40) : [];
   } catch {
     return [];
   }

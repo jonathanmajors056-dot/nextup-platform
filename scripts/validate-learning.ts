@@ -22,7 +22,8 @@ assert.equal(profile.feedbackQuality, 100);
 
 const competition = opportunities.find((opportunity) => opportunity.category === "Competition");
 const workshop = opportunities.find((opportunity) => opportunity.category === "Workshop");
-assert.ok(competition && workshop);
+const neutral = opportunities.find((opportunity) => opportunity.id === "ai");
+assert.ok(competition && workshop && neutral);
 assert.ok(scoreOpportunity(workshop, profile) > 0);
 assert.ok(scoreOpportunity(competition, profile) > scoreOpportunity(workshop, profile));
 
@@ -30,5 +31,14 @@ const negativeProfile = deriveLearningProfile([normalized, { ...normalized, valu
 assert.ok(negativeProfile.opportunityWeights.orbit < profile.opportunityWeights.orbit);
 assert.equal(negativeProfile.feedbackQuality, 50);
 assert.match(explainOpportunity(competition, negativeProfile), /recent feedback/);
+
+const recoveryProfile = deriveLearningProfile([
+  normalized,
+  { ...normalized, opportunityId: "climate", value: "not-useful", timestamp: "2026-10-15T12:01:00.000Z" },
+  { ...normalized, opportunityId: "bio", value: "not-useful", timestamp: "2026-10-15T12:02:00.000Z" },
+]);
+assert.equal(recoveryProfile.feedbackQuality, 33);
+assert.match(recoveryProfile.summary, /Broadening/);
+assert.ok(scoreOpportunity(neutral, recoveryProfile) > scoreOpportunity(neutral, profile));
 
 console.log("Learning engine checks passed.");

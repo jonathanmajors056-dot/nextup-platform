@@ -19,9 +19,11 @@ export type LearningProfile = {
   totalSignals: number;
   confidence: number;
   summary: string;
+  modelVersion: string;
+  topPreferences: string[];
 };
 
-const emptyProfile = (): LearningProfile => ({ categoryWeights: {}, formatWeights: {}, tagWeights: {}, totalSignals: 0, confidence: 0, summary: "Keep exploring; your signal profile will learn from saves and feedback." });
+const emptyProfile = (): LearningProfile => ({ categoryWeights: {}, formatWeights: {}, tagWeights: {}, totalSignals: 0, confidence: 0, summary: "Keep exploring; your signal profile will learn from saves and feedback.", modelVersion: "adaptive-v1.1", topPreferences: [] });
 
 function add(map: Record<string, number>, key: string | undefined, amount: number) {
   if (!key) return;
@@ -41,6 +43,7 @@ export function deriveLearningProfile(events: LearningEvent[]): LearningProfile 
   profile.confidence = Math.min(96, Math.round(profile.totalSignals * 8));
   const bestCategory = Object.entries(profile.categoryWeights).sort((a, b) => b[1] - a[1])[0];
   const bestTag = Object.entries(profile.tagWeights).sort((a, b) => b[1] - a[1])[0];
+  profile.topPreferences = [...Object.entries(profile.categoryWeights).map(([key, value]) => ({ key, value })), ...Object.entries(profile.tagWeights).map(([key, value]) => ({ key, value }))].filter((item) => item.value > 0).sort((a, b) => b.value - a.value).slice(0, 3).map((item) => item.key);
   profile.summary = bestCategory && bestCategory[1] > 0
     ? `Learning toward ${bestCategory[0].toLowerCase()} opportunities${bestTag && bestTag[1] > 0 ? ` and ${bestTag[0]} work` : ""}.`
     : "Keep exploring; your signal profile will learn from saves and feedback.";
@@ -52,6 +55,15 @@ export function scoreOpportunity(opportunity: Opportunity, profile: LearningProf
   const format = profile.formatWeights[opportunity.format] ?? 0;
   const tags = opportunity.tags.reduce((score, tag) => score + (profile.tagWeights[tag] ?? 0), 0);
   return Math.round(50 + category * 5 + format * 2 + tags * 1.5 + (opportunity.verified ? 8 : 0));
+}
+
+export function explainOpportunity(opportunity: Opportunity, profile: LearningProfile) {
+  const reasons = [
+    (profile.categoryWeights[opportunity.category] ?? 0) > 0 ? `matches your ${opportunity.category.toLowerCase()} interest` : "keeps your stream broad",
+    ...opportunity.tags.filter((tag) => (profile.tagWeights[tag] ?? 0) > 0).slice(0, 2).map((tag) => `matches your ${tag} signal`),
+    opportunity.verified ? "source verified" : "awaiting source review",
+  ];
+  return reasons.slice(0, 2).join(" · ");
 }
 
 export function rankOpportunities(opportunities: Opportunity[], profile: LearningProfile) {

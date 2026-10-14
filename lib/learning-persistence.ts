@@ -1,4 +1,4 @@
-import { normalizeLearningEvent, type LearningEvent } from "./learning-engine";
+import { learningEventKey, normalizeLearningEvent, type LearningEvent } from "./learning-engine";
 
 const VIEWER_COOKIE = "nextup-viewer";
 const LEARNING_COOKIE = "nextup-learning";
@@ -51,7 +51,7 @@ function supabaseConfig() {
 }
 
 function row(viewerId: string, event: LearningEvent) {
-  return { viewer_id: viewerId, event_type: event.type, opportunity_id: event.opportunityId ?? null, category: event.category ?? null, format: event.format ?? null, tags: event.tags ?? [], value: event.value ?? null, occurred_at: event.timestamp };
+  return { viewer_id: viewerId, event_key: learningEventKey(event), event_type: event.type, opportunity_id: event.opportunityId ?? null, category: event.category ?? null, format: event.format ?? null, tags: event.tags ?? [], value: event.value ?? null, occurred_at: event.timestamp };
 }
 
 function eventFromRow(value: Record<string, unknown>): LearningEvent {
@@ -70,7 +70,7 @@ export async function loadPersistedLearning(viewerId: string) {
 export async function persistLearning(viewerId: string, events: LearningEvent[]) {
   const config = supabaseConfig();
   if (!config || !events.length) return false;
-  const response = await fetch(`${config.url}/rest/v1/student_learning_events`, { method: "POST", headers: { apikey: config.key, Authorization: `Bearer ${config.key}`, "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(events.slice(-20).map((event) => row(viewerId, event))) });
+  const response = await fetch(`${config.url}/rest/v1/student_learning_events`, { method: "POST", headers: { apikey: config.key, Authorization: `Bearer ${config.key}`, "Content-Type": "application/json", Prefer: "resolution=ignore-duplicates,return=minimal" }, body: JSON.stringify(events.slice(-20).map((event) => row(viewerId, event))) });
   if (!response.ok) throw new Error(`Learning store write failed: ${response.status}`);
   return true;
 }

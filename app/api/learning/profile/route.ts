@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { deriveLearningProfile, learningEventKey, LEARNING_MODEL_VERSION, normalizeLearningEvent, type LearningEvent } from "@/lib/learning-engine";
-import { attachCookieLearning, attachViewerCookie, loadCookieLearning, loadPersistedLearning, persistLearning, viewerIdFromRequest } from "@/lib/learning-persistence";
+import { attachCookieLearning, attachViewerCookie, clearPersistedLearning, loadCookieLearning, loadPersistedLearning, persistLearning, viewerIdFromRequest } from "@/lib/learning-persistence";
 
 function parseEvents(body: unknown) {
   const values = body && typeof body === "object" && "events" in body ? (body as { events?: unknown }).events : [];
@@ -43,4 +43,17 @@ export async function POST(request: Request) {
     attachViewerCookie(response, viewerId, request);
     return attachCookieLearning(response, merged);
   }
+}
+
+export async function DELETE(request: Request) {
+  const viewerId = viewerIdFromRequest(request);
+  let mode: "persistent-learning-loop" | "cookie-learning-loop" = "cookie-learning-loop";
+  try {
+    if (await clearPersistedLearning(viewerId)) mode = "persistent-learning-loop";
+  } catch {
+    mode = "cookie-learning-loop";
+  }
+  const response = NextResponse.json({ profile: deriveLearningProfile([]), events: [], accepted: 0, mode, modelVersion: LEARNING_MODEL_VERSION, reset: true });
+  attachViewerCookie(response, viewerId, request);
+  return attachCookieLearning(response, []);
 }

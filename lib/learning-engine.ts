@@ -78,7 +78,8 @@ export function scoreOpportunity(opportunity: Opportunity, profile: LearningProf
   const category = profile.categoryWeights[opportunity.category] ?? 0;
   const format = profile.formatWeights[opportunity.format] ?? 0;
   const tags = opportunity.tags.reduce((score, tag) => score + (profile.tagWeights[tag] ?? 0), 0);
-  return Math.round(50 + category * 5 + format * 2 + tags * 1.5 + (opportunity.verified ? 8 : 0));
+  const exploration = profile.confidence < 60 && category === 0 ? 2 : 0;
+  return Math.round(50 + category * 5 + format * 2 + tags * 1.5 + exploration + (opportunity.verified ? 8 : 0));
 }
 
 export function explainOpportunity(opportunity: Opportunity, profile: LearningProfile) {

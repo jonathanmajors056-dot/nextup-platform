@@ -12,6 +12,26 @@ export type LearningEvent = {
   timestamp: string;
 };
 
+const eventTypes = new Set<LearningEventType>(["view", "open", "save", "unsave", "dismiss", "feedback"]);
+
+export function normalizeLearningEvent(value: unknown): LearningEvent | null {
+  if (!value || typeof value !== "object") return null;
+  const candidate = value as Record<string, unknown>;
+  const type = candidate.type;
+  const timestamp = candidate.timestamp;
+  if (typeof type !== "string" || !eventTypes.has(type as LearningEventType) || typeof timestamp !== "string" || !timestamp || Number.isNaN(Date.parse(timestamp))) return null;
+  const valueSignal = candidate.value === "useful" || candidate.value === "not-useful" ? candidate.value : undefined;
+  return {
+    type: type as LearningEventType,
+    opportunityId: typeof candidate.opportunityId === "string" ? candidate.opportunityId : undefined,
+    category: typeof candidate.category === "string" ? candidate.category : undefined,
+    format: typeof candidate.format === "string" ? candidate.format : undefined,
+    tags: Array.isArray(candidate.tags) ? candidate.tags.filter((tag): tag is string => typeof tag === "string").slice(0, 12) : [],
+    value: valueSignal,
+    timestamp,
+  };
+}
+
 export type LearningProfile = {
   categoryWeights: Record<string, number>;
   formatWeights: Record<string, number>;

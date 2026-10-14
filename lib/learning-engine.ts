@@ -12,7 +12,7 @@ export type LearningEvent = {
   timestamp: string;
 };
 
-export const LEARNING_MODEL_VERSION = "adaptive-v1.2";
+export const LEARNING_MODEL_VERSION = "adaptive-v1.3";
 
 const eventTypes = new Set<LearningEventType>(["view", "open", "save", "unsave", "dismiss", "feedback"]);
 
@@ -45,13 +45,16 @@ export type LearningProfile = {
   opportunityWeights: Record<string, number>;
   seenOpportunityIds: string[];
   totalSignals: number;
+  feedbackCount: number;
+  usefulFeedback: number;
+  feedbackQuality: number | null;
   confidence: number;
   summary: string;
   modelVersion: string;
   topPreferences: string[];
 };
 
-const emptyProfile = (): LearningProfile => ({ categoryWeights: {}, formatWeights: {}, tagWeights: {}, opportunityWeights: {}, seenOpportunityIds: [], totalSignals: 0, confidence: 0, summary: "Keep exploring; your signal profile will learn from saves and feedback.", modelVersion: LEARNING_MODEL_VERSION, topPreferences: [] });
+const emptyProfile = (): LearningProfile => ({ categoryWeights: {}, formatWeights: {}, tagWeights: {}, opportunityWeights: {}, seenOpportunityIds: [], totalSignals: 0, feedbackCount: 0, usefulFeedback: 0, feedbackQuality: null, confidence: 0, summary: "Keep exploring; your signal profile will learn from saves and feedback.", modelVersion: LEARNING_MODEL_VERSION, topPreferences: [] });
 
 function add(map: Record<string, number>, key: string | undefined, amount: number) {
   if (!key) return;
@@ -75,7 +78,12 @@ export function deriveLearningProfile(events: LearningEvent[]): LearningProfile 
       if (!profile.seenOpportunityIds.includes(event.opportunityId)) profile.seenOpportunityIds.push(event.opportunityId);
     }
     profile.totalSignals += 1;
+    if (event.type === "feedback" && event.value) {
+      profile.feedbackCount += 1;
+      if (event.value === "useful") profile.usefulFeedback += 1;
+    }
   }
+  profile.feedbackQuality = profile.feedbackCount ? Math.round((profile.usefulFeedback / profile.feedbackCount) * 100) : null;
   profile.confidence = Math.min(96, Math.round(profile.totalSignals * 8));
   const bestCategory = Object.entries(profile.categoryWeights).sort((a, b) => b[1] - a[1])[0];
   const bestTag = Object.entries(profile.tagWeights).sort((a, b) => b[1] - a[1])[0];

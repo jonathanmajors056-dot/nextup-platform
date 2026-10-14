@@ -59,7 +59,7 @@ The first build implements Phases 1–3 as a polished, data-backed front-end pro
 
 The initial shell is now backed by `data/opportunities.ts`, exposed through `GET /api/opportunities`, and routed through static opportunity detail pages at `/discover/[id]`. Shortlist state persists under the browser key `nextup:saved`. This is the first integration seam: the UI can now consume a normalized opportunity contract while the next step replaces the local adapter with the existing Sciloop/NextUp source and review APIs.
 
-The live connection seam is now configurable through `SCILOOP_BASE_URL`: `/api/sciloop/status` checks the running Sciloop `/api/system-status` endpoint, while `/api/sciloop/innovations` reads the remote `/api/sciloop-ai-proxy/news` contract and normalizes it into student-facing signals, falling back to curated local records when unavailable. NewsPortal consumes that normalized route and labels the active source. Student opportunity submissions queue through `/api/opportunities/submissions` and return an explicit review state.
+The live connection seam is now configurable through `SCILOOP_BASE_URL` (set on the Vercel Preview environment for `codex/sciloop-nextup-preview`): `/api/sciloop/status` checks the running Sciloop `/api/system-status` endpoint, while `/api/sciloop/innovations` reads the remote `/api/sciloop-ai-proxy/news` contract and normalizes it into student-facing signals, falling back to curated local records when unavailable. NewsPortal consumes that normalized route and labels the active source. Student opportunity submissions queue through `/api/opportunities/submissions` and return an explicit review state.
 
 ## Self-improving learning loop
 

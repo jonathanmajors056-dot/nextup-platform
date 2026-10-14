@@ -12,6 +12,8 @@ export type LearningEvent = {
   timestamp: string;
 };
 
+export const LEARNING_MODEL_VERSION = "adaptive-v1.2";
+
 const eventTypes = new Set<LearningEventType>(["view", "open", "save", "unsave", "dismiss", "feedback"]);
 
 export function normalizeLearningEvent(value: unknown): LearningEvent | null {
@@ -40,6 +42,8 @@ export type LearningProfile = {
   categoryWeights: Record<string, number>;
   formatWeights: Record<string, number>;
   tagWeights: Record<string, number>;
+  opportunityWeights: Record<string, number>;
+  seenOpportunityIds: string[];
   totalSignals: number;
   confidence: number;
   summary: string;
@@ -47,7 +51,7 @@ export type LearningProfile = {
   topPreferences: string[];
 };
 
-const emptyProfile = (): LearningProfile => ({ categoryWeights: {}, formatWeights: {}, tagWeights: {}, totalSignals: 0, confidence: 0, summary: "Keep exploring; your signal profile will learn from saves and feedback.", modelVersion: "adaptive-v1.1", topPreferences: [] });
+const emptyProfile = (): LearningProfile => ({ categoryWeights: {}, formatWeights: {}, tagWeights: {}, opportunityWeights: {}, seenOpportunityIds: [], totalSignals: 0, confidence: 0, summary: "Keep exploring; your signal profile will learn from saves and feedback.", modelVersion: LEARNING_MODEL_VERSION, topPreferences: [] });
 
 function add(map: Record<string, number>, key: string | undefined, amount: number) {
   if (!key) return;
@@ -56,12 +60,20 @@ function add(map: Record<string, number>, key: string | undefined, amount: numbe
 
 export function deriveLearningProfile(events: LearningEvent[]): LearningProfile {
   const profile = emptyProfile();
+  const referenceTime = Math.max(Date.now(), ...events.map((event) => Date.parse(event.timestamp)).filter(Number.isFinite));
   for (const event of events) {
     const direction = event.type === "dismiss" || event.type === "unsave" || event.value === "not-useful" ? -1 : 1;
     const amount = event.type === "save" ? 3 : event.type === "feedback" ? 4 : event.type === "dismiss" ? 2 : 1;
-    add(profile.categoryWeights, event.category, direction * amount);
-    add(profile.formatWeights, event.format, direction * amount);
-    for (const tag of event.tags ?? []) add(profile.tagWeights, tag, direction * amount);
+    const age = Math.max(0, referenceTime - Date.parse(event.timestamp));
+    const recency = 0.35 + (0.65 * Math.exp(-age / (1000 * 60 * 60 * 24 * 30)));
+    const weightedAmount = direction * amount * recency;
+    add(profile.categoryWeights, event.category, weightedAmount);
+    add(profile.formatWeights, event.format, weightedAmount);
+    for (const tag of event.tags ?? []) add(profile.tagWeights, tag, weightedAmount);
+    if (event.opportunityId) {
+      add(profile.opportunityWeights, event.opportunityId, weightedAmount);
+      if (!profile.seenOpportunityIds.includes(event.opportunityId)) profile.seenOpportunityIds.push(event.opportunityId);
+    }
     profile.totalSignals += 1;
   }
   profile.confidence = Math.min(96, Math.round(profile.totalSignals * 8));
@@ -78,16 +90,20 @@ export function scoreOpportunity(opportunity: Opportunity, profile: LearningProf
   const category = profile.categoryWeights[opportunity.category] ?? 0;
   const format = profile.formatWeights[opportunity.format] ?? 0;
   const tags = opportunity.tags.reduce((score, tag) => score + (profile.tagWeights[tag] ?? 0), 0);
-  const exploration = profile.confidence < 60 && category === 0 ? 2 : 0;
-  return Math.round(50 + category * 5 + format * 2 + tags * 1.5 + exploration + (opportunity.verified ? 8 : 0));
+  const item = profile.opportunityWeights[opportunity.id] ?? 0;
+  const unseen = !profile.seenOpportunityIds.includes(opportunity.id);
+  const exploration = profile.confidence < 60 && unseen ? 3 : 0;
+  return Math.round(50 + category * 5 + format * 2 + tags * 1.5 + item * 2.5 + exploration + (opportunity.verified ? 8 : 0));
 }
 
 export function explainOpportunity(opportunity: Opportunity, profile: LearningProfile) {
+  const itemWeight = profile.opportunityWeights[opportunity.id] ?? 0;
   const reasons = [
+    itemWeight < 0 ? "de-prioritized by recent feedback" : itemWeight > 0 ? "reinforced by your recent signal" : undefined,
     (profile.categoryWeights[opportunity.category] ?? 0) > 0 ? `matches your ${opportunity.category.toLowerCase()} interest` : "keeps your stream broad",
     ...opportunity.tags.filter((tag) => (profile.tagWeights[tag] ?? 0) > 0).slice(0, 2).map((tag) => `matches your ${tag} signal`),
     opportunity.verified ? "source verified" : "awaiting source review",
-  ];
+  ].filter((reason): reason is string => Boolean(reason));
   return reasons.slice(0, 2).join(" · ");
 }
 

@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
-import { deriveLearningProfile, normalizeLearningEvent, type LearningEvent } from "@/lib/learning-engine";
+import { deriveLearningProfile, learningEventKey, normalizeLearningEvent, type LearningEvent } from "@/lib/learning-engine";
 import { attachCookieLearning, attachViewerCookie, loadCookieLearning, loadPersistedLearning, persistLearning, viewerIdFromRequest } from "@/lib/learning-persistence";
 
 function parseEvents(body: unknown) {
   const values = body && typeof body === "object" && "events" in body ? (body as { events?: unknown }).events : [];
   return Array.isArray(values) ? values.map(normalizeLearningEvent).filter((event): event is LearningEvent => Boolean(event)).slice(-80) : [];
-}
-
-function eventKey(event: LearningEvent) {
-  return [event.type, event.opportunityId ?? "", event.category ?? "", event.format ?? "", event.value ?? "", event.timestamp].join("|");
 }
 
 export async function GET(request: Request) {
@@ -35,8 +31,8 @@ export async function POST(request: Request) {
   const merged = [...cookieEvents, ...events].filter((event, index, all) => all.findIndex((candidate) => candidate.type === event.type && candidate.opportunityId === event.opportunityId && candidate.timestamp === event.timestamp) === index).slice(-80);
   try {
     const before = await loadPersistedLearning(viewerId);
-    const known = new Set((before ?? cookieEvents).map(eventKey));
-    const newEvents = events.filter((event) => !known.has(eventKey(event)));
+    const known = new Set((before ?? cookieEvents).map(learningEventKey));
+    const newEvents = events.filter((event) => !known.has(learningEventKey(event)));
     if (newEvents.length) await persistLearning(viewerId, newEvents);
     const stored = (await loadPersistedLearning(viewerId)) ?? before ?? merged;
     const response = NextResponse.json({ profile: deriveLearningProfile(stored), events: stored, accepted: newEvents.length, mode: before !== null ? "persistent-learning-loop" : "cookie-learning-loop", modelVersion: "adaptive-v1.1" });

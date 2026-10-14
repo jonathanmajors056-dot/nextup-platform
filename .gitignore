@@ -1,35 +1,38 @@
-# Dependencies
 node_modules/
-
-# Next.js build output
 .next/
-out/
-
-# TypeScript incremental build cache
 *.tsbuildinfo
+app-legacy/
+components-legacy/
+AGENTS.md
+CLAUDE.md
 
-# Local environment files and secrets
-.env
-.env.local
-.env.*.local
-!.env.example
+# Preserved SciLoop reference modules/assets not included in the NextUp deploy candidate.
+public/
+styles/
+data/discoveries.ts
+data/evolution/
+data/meaning-engine.ts
+data/subjects.ts
+data/worlds/
+lib/capability-registry.ts
+lib/content-studio.ts
+lib/director-ai.ts
+lib/evolution-engine.ts
+lib/evolution-store.ts
+lib/knowledge-graph.ts
+lib/physics-visual-language.ts
+lib/portal-consolidation.ts
+lib/public-portal.ts
+lib/reality-sandbox.ts
+lib/sciloop-feature-flags.ts
+lib/sciloop-project.ts
+lib/simulation.ts
+lib/theme.ts
+lib/types.ts
+lib/use-simulation-transition.ts
+lib/utils.ts
+lib/viral-simulation.ts
+lib/visual-mechanism-recipes.ts
 
-# Logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Local tooling and OS files
 .vercel/
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-
-# Test and coverage output
-coverage/
-playwright-report/
-test-results/
+.env.local

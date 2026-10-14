@@ -50,6 +50,10 @@ function supabaseConfig() {
   return url && key ? { url: url.replace(/\/$/, ""), key } : null;
 }
 
+export function hasLearningPersistenceConfig() {
+  return Boolean(supabaseConfig());
+}
+
 function row(viewerId: string, event: LearningEvent) {
   return { viewer_id: viewerId, event_key: learningEventKey(event), event_type: event.type, opportunity_id: event.opportunityId ?? null, category: event.category ?? null, format: event.format ?? null, tags: event.tags ?? [], value: event.value ?? null, occurred_at: event.timestamp };
 }
@@ -65,6 +69,16 @@ export async function loadPersistedLearning(viewerId: string) {
   if (!response.ok) throw new Error(`Learning store read failed: ${response.status}`);
   const data = await response.json() as Record<string, unknown>[];
   return data.reverse().map(eventFromRow);
+}
+
+export async function inspectLearningPersistence(viewerId: string) {
+  if (!supabaseConfig()) return { configured: false, ready: false, mode: "cookie-fallback" as const, reason: "missing-environment" as const };
+  try {
+    await loadPersistedLearning(viewerId);
+    return { configured: true, ready: true, mode: "persistent" as const, reason: "table-readable" as const };
+  } catch {
+    return { configured: true, ready: false, mode: "cookie-fallback" as const, reason: "schema-unavailable" as const };
+  }
 }
 
 export async function persistLearning(viewerId: string, events: LearningEvent[]) {

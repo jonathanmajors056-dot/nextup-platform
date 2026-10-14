@@ -12,7 +12,7 @@ export type LearningEvent = {
   timestamp: string;
 };
 
-export const LEARNING_MODEL_VERSION = "adaptive-v1.4";
+export const LEARNING_MODEL_VERSION = "adaptive-v1.5";
 
 const eventTypes = new Set<LearningEventType>(["view", "open", "save", "unsave", "dismiss", "feedback"]);
 
@@ -48,13 +48,14 @@ export type LearningProfile = {
   feedbackCount: number;
   usefulFeedback: number;
   feedbackQuality: number | null;
+  nextAction: string;
   confidence: number;
   summary: string;
   modelVersion: string;
   topPreferences: string[];
 };
 
-const emptyProfile = (): LearningProfile => ({ categoryWeights: {}, formatWeights: {}, tagWeights: {}, opportunityWeights: {}, seenOpportunityIds: [], totalSignals: 0, feedbackCount: 0, usefulFeedback: 0, feedbackQuality: null, confidence: 0, summary: "Keep exploring; your signal profile will learn from saves and feedback.", modelVersion: LEARNING_MODEL_VERSION, topPreferences: [] });
+const emptyProfile = (): LearningProfile => ({ categoryWeights: {}, formatWeights: {}, tagWeights: {}, opportunityWeights: {}, seenOpportunityIds: [], totalSignals: 0, feedbackCount: 0, usefulFeedback: 0, feedbackQuality: null, nextAction: "Open one opportunity and tell the model what you think.", confidence: 0, summary: "Keep exploring; your signal profile will learn from saves and feedback.", modelVersion: LEARNING_MODEL_VERSION, topPreferences: [] });
 
 function add(map: Record<string, number>, key: string | undefined, amount: number) {
   if (!key) return;
@@ -93,6 +94,11 @@ export function deriveLearningProfile(events: LearningEvent[]): LearningProfile 
     : bestCategory && bestCategory[1] > 0
     ? `Learning toward ${bestCategory[0].toLowerCase()} opportunities${bestTag && bestTag[1] > 0 ? ` and ${bestTag[0]} work` : ""}.`
     : "Keep exploring; your signal profile will learn from saves and feedback.";
+  profile.nextAction = profile.feedbackQuality !== null && profile.feedbackQuality < 50 && profile.feedbackCount >= 2
+    ? "Try one signal outside your current orbit, then mark it useful or not useful."
+    : bestCategory && bestCategory[1] > 0
+      ? `Explore one more ${bestCategory[0].toLowerCase()} opportunity while your signal is fresh.`
+      : "Open one opportunity and tell the model what you think.";
   return profile;
 }
 

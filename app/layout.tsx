@@ -1,18 +1,12 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NextUp — verified opportunities",
-  description: "A focused feed of verified opportunities for students and early-career builders.",
-  applicationName: "NextUp",
-  keywords: ["student opportunities", "hackathons", "events", "India", "internships"],
-  openGraph: { title: "NextUp — verified opportunities", description: "Find the next opportunity worth your attention.", type: "website" },
+  title: "NextUp / SciLoop — Student signal desk",
+  description: "A SciLoop-native opportunity desk for students and builders.",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body>{children}</body>
-    </html>
-  );
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return <html lang="en"><body>{children}</body></html>;
 }

@@ -88,3 +88,11 @@ export async function persistLearning(viewerId: string, events: LearningEvent[])
   if (!response.ok) throw new Error(`Learning store write failed: ${response.status}`);
   return true;
 }
+
+export async function clearPersistedLearning(viewerId: string) {
+  const config = supabaseConfig();
+  if (!config) return false;
+  const response = await fetch(`${config.url}/rest/v1/student_learning_events?viewer_id=eq.${encodeURIComponent(viewerId)}`, { method: "DELETE", headers: { apikey: config.key, Authorization: `Bearer ${config.key}`, Prefer: "return=minimal" }, cache: "no-store" });
+  if (!response.ok) throw new Error(`Learning store delete failed: ${response.status}`);
+  return true;
+}

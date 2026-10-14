@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { opportunities, type Opportunity } from "@/data/opportunities";
 import { innovations } from "@/data/innovations";
 import { sciloopPortals } from "@/lib/sciloop-os";
@@ -15,6 +15,9 @@ export function NextUpPlatform({ view }: { view: View }) {
   const [saved, setSaved] = useState<string[]>(() => { if (typeof window === "undefined") return ["climate"]; try { return JSON.parse(window.localStorage.getItem("nextup:saved") ?? '["climate"]'); } catch { return ["climate"]; } }); const [events, setEvents] = useState<LearningEvent[]>(() => { if (typeof window === "undefined") return []; try { return JSON.parse(window.localStorage.getItem("nextup:learning-events") ?? "[]"); } catch { return []; } }); const [query, setQuery] = useState(""); const [category, setCategory] = useState("All"); const [format, setFormat] = useState("Any format"); const [horizon, setHorizon] = useState("Any deadline"); const [city, setCity] = useState(""); const [submitted, setSubmitted] = useState(false); const [sciloopMode, setSciloopMode] = useState("checking link");
   useEffect(() => { window.localStorage.setItem("nextup:saved", JSON.stringify(saved)); }, [saved]);
   useEffect(() => { window.localStorage.setItem("nextup:learning-events", JSON.stringify(events.slice(-80))); }, [events]);
+  const hydratedLearning = useRef(false); const initialLearningCount = useRef(events.length);
+  useEffect(() => { fetch("/api/learning/profile").then((response) => response.json()).then((data: { events?: LearningEvent[] }) => { if (!hydratedLearning.current && initialLearningCount.current === 0 && data.events?.length) { startTransition(() => setEvents(data.events ?? [])); } hydratedLearning.current = true; }).catch(() => { hydratedLearning.current = true; }); }, []);
+  useEffect(() => { if (!hydratedLearning.current || !events.length) return; const latest = events[events.length - 1]; fetch("/api/learning/profile", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ events: [latest] }) }).catch(() => undefined); }, [events]);
   useEffect(() => { fetch("/api/sciloop/status").then((response) => response.json()).then((status: { connected?: boolean; mode?: string }) => setSciloopMode(status.connected ? "sciloop linked" : status.mode === "local-adapter" ? "local sciloop adapter" : "sciloop fallback")).catch(() => setSciloopMode("sciloop fallback")); }, []);
   const profile = useMemo(() => deriveLearningProfile(events), [events]);
   const recordOpportunity = (opportunity: Opportunity, type: LearningEventType, value?: "useful" | "not-useful") => setEvents((current) => [...current, { type, opportunityId: opportunity.id, category: opportunity.category, format: opportunity.format, tags: opportunity.tags, value, timestamp: new Date().toISOString() }]);

@@ -12,7 +12,7 @@ export type LearningEvent = {
   timestamp: string;
 };
 
-export const LEARNING_MODEL_VERSION = "adaptive-v1.3";
+export const LEARNING_MODEL_VERSION = "adaptive-v1.4";
 
 const eventTypes = new Set<LearningEventType>(["view", "open", "save", "unsave", "dismiss", "feedback"]);
 
@@ -88,7 +88,9 @@ export function deriveLearningProfile(events: LearningEvent[]): LearningProfile 
   const bestCategory = Object.entries(profile.categoryWeights).sort((a, b) => b[1] - a[1])[0];
   const bestTag = Object.entries(profile.tagWeights).sort((a, b) => b[1] - a[1])[0];
   profile.topPreferences = [...Object.entries(profile.categoryWeights).map(([key, value]) => ({ key, value })), ...Object.entries(profile.tagWeights).map(([key, value]) => ({ key, value }))].filter((item) => item.value > 0).sort((a, b) => b.value - a.value).slice(0, 3).map((item) => item.key);
-  profile.summary = bestCategory && bestCategory[1] > 0
+  profile.summary = profile.feedbackQuality !== null && profile.feedbackQuality < 50 && profile.feedbackCount >= 2
+    ? "Broadening your stream after mixed feedback; tell the model what to keep."
+    : bestCategory && bestCategory[1] > 0
     ? `Learning toward ${bestCategory[0].toLowerCase()} opportunities${bestTag && bestTag[1] > 0 ? ` and ${bestTag[0]} work` : ""}.`
     : "Keep exploring; your signal profile will learn from saves and feedback.";
   return profile;
@@ -100,7 +102,9 @@ export function scoreOpportunity(opportunity: Opportunity, profile: LearningProf
   const tags = opportunity.tags.reduce((score, tag) => score + (profile.tagWeights[tag] ?? 0), 0);
   const item = profile.opportunityWeights[opportunity.id] ?? 0;
   const unseen = !profile.seenOpportunityIds.includes(opportunity.id);
-  const exploration = profile.confidence < 60 && unseen ? 3 : 0;
+  const lowConfidenceExploration = profile.confidence < 60 && unseen ? 3 : 0;
+  const feedbackRecoveryExploration = profile.feedbackQuality !== null && profile.feedbackQuality < 50 && unseen ? 3 : 0;
+  const exploration = lowConfidenceExploration + feedbackRecoveryExploration;
   return Math.round(50 + category * 5 + format * 2 + tags * 1.5 + item * 2.5 + exploration + (opportunity.verified ? 8 : 0));
 }
 

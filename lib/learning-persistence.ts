@@ -1,6 +1,8 @@
 import type { LearningEvent } from "./learning-engine";
 
 const VIEWER_COOKIE = "nextup-viewer";
+const LEARNING_COOKIE = "nextup-learning";
+const MAX_COOKIE_BYTES = 3500;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function viewerIdFromRequest(request: Request) {
@@ -10,6 +12,35 @@ export function viewerIdFromRequest(request: Request) {
 
 export function attachViewerCookie(response: Response, viewerId: string, request: Request) {
   if (!request.headers.get("cookie")?.includes(`${VIEWER_COOKIE}=`)) response.headers.append("Set-Cookie", `${VIEWER_COOKIE}=${viewerId}; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax${process.env.NODE_ENV === "production" ? "; Secure" : ""}`);
+  return response;
+}
+
+function cookieValue(request: Request, name: string) {
+  return request.headers.get("cookie")?.match(new RegExp(`(?:^|;\\s*)${name}=([^;]+)`))?.[1];
+}
+
+export function loadCookieLearning(request: Request) {
+  const value = cookieValue(request, LEARNING_COOKIE);
+  if (!value) return [];
+  try {
+    const decoded = Buffer.from(value, "base64url").toString("utf8");
+    const parsed = JSON.parse(decoded) as unknown;
+    return Array.isArray(parsed) ? parsed.filter((event): event is LearningEvent => Boolean(event) && typeof event === "object" && typeof (event as LearningEvent).timestamp === "string" && typeof (event as LearningEvent).type === "string").slice(-40) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function attachCookieLearning(response: Response, events: LearningEvent[]) {
+  const compact: LearningEvent[] = [];
+  for (const event of events.slice(-40).reverse()) {
+    const candidate = [event, ...compact];
+    const encoded = Buffer.from(JSON.stringify(candidate), "utf8").toString("base64url");
+    if (encoded.length > MAX_COOKIE_BYTES) break;
+    compact.unshift(event);
+  }
+  const encoded = Buffer.from(JSON.stringify(compact), "utf8").toString("base64url");
+  response.headers.append("Set-Cookie", `${LEARNING_COOKIE}=${encoded}; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax${process.env.NODE_ENV === "production" ? "; Secure" : ""}`);
   return response;
 }
 

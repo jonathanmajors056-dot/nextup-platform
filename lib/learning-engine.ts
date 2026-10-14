@@ -32,6 +32,10 @@ export function normalizeLearningEvent(value: unknown): LearningEvent | null {
   };
 }
 
+export function learningEventKey(event: LearningEvent) {
+  return [event.type, event.opportunityId ?? "", event.category ?? "", event.format ?? "", event.value ?? "", event.timestamp].join("|");
+}
+
 export type LearningProfile = {
   categoryWeights: Record<string, number>;
   formatWeights: Record<string, number>;

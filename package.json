@@ -1,31 +1,54 @@
 {
-  "name": "opportunity-platform",
-  "version": "0.1.0",
+  "name": "sciloop-3",
+  "version": "1.0.0",
+  "description": "SciLoop MVP built with Next.js, TypeScript, Tailwind, and React Three Fiber.",
   "private": true,
+  "packageManager": "npm@11.9.0",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=24.14.0 <25"
   },
   "scripts": {
+    "setup": "node scripts/setup.mjs",
     "dev": "next dev",
+    "dev:share": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "verify:local": "node scripts/verify-local.mjs"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run validate:physics",
+    "validate:physics": "tsx scripts/validate-physics-visual-language.ts",
+    "test:browser": "npm run build && echo Browser smoke tests are run with the repository browser verifier against the production server."
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "@supabase/ssr": "^0.12.7",
-    "@supabase/supabase-js": "^2.49.8",
-    "@upstash/ratelimit": "^2.2.0",
-    "@upstash/redis": "^1.39.0",
-    "next": "^15.5.4",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "zod": "^3.25.76"
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
+    "@sentry/nextjs": "^10.69.0",
+    "@vercel/analytics": "^2.0.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "highlight.js": "^11.11.1",
+    "motion": "^12.38.0",
+    "next": "^16.3.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "remark-gfm": "^4.0.1",
+    "three": "^0.183.2"
   },
   "devDependencies": {
-    "@types/node": "^22.15.30",
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
-    "typescript": "^5.8.3"
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.0",
+    "postcss": "^8.5.25",
+    "tailwindcss": "^4.2.2",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3"
   }
 }

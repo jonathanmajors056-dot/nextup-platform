@@ -76,6 +76,8 @@ Apply `supabase/schema.sql` to the project before enabling persistence. The sche
 
 The `/admin` control room and `/api/health` endpoint show the same server-side readiness state. A “Pilot ready” state means persistence, protected review operations, AI extraction, and authenticated expiry automation are configured. A “Public ready” state additionally requires approved opportunity and news feeds. Supabase Auth is still the next account milestone; until it is added, students use a browser-scoped anonymous workspace cookie for saves.
 
+AI extraction uses a provider fallback chain so the pilot does not depend on one paid vendor. Configure one or more of `GROQ_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, or `HF_TOKEN` in `.env.local`; their matching model variables are optional. Providers are tried in Groq, Gemini, OpenRouter, Hugging Face, then OpenAI order, and the existing heuristic/manual fallback remains available when no provider is configured or a provider is temporarily unavailable. Free tiers have provider-specific quotas and terms, so review every extracted opportunity before publishing.
+
 Production also requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. They enable route-level limits for submissions, saves, location updates, admin sessions, and sync operations. Protected admin operations fail closed when rate limiting is not configured. Public feeds reject placeholder hosts such as `example.com`, and every database-backed moderation or ingestion action writes to an audit log.
 
 ## Deployment

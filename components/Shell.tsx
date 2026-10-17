@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { usePathname } from "next/navigation";
 
 const navigation = [
   { href: "/", label: "Discover" },
+  { href: "/ai", label: "NextUp AI" },
   { href: "/newsportal", label: "NewsPortal" },
+  { href: "/add", label: "Add subscription" },
+  { href: "/groups", label: "Groups" },
   { href: "/saved", label: "Saved" },
   { href: "/admin", label: "Admin" },
   { href: "/auth", label: "Account" },
@@ -14,7 +18,7 @@ const navigation = [
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <div className="shell">
+    <div className={`shell${pathname.startsWith("/add") ? " subscription-shell" : ""}`}>
       <a className="skip-link" href="#main-content">Skip to content</a>
       <header className="topbar">
         <div className="topbar-inner">
@@ -26,7 +30,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <span className="topbar-status"><i /> Live pilot workspace</span>
             {navigation.map((item) => {
               const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-              return <Link className={`nav-link${active ? " active" : ""}`} href={item.href} aria-current={active ? "page" : undefined} key={item.href}>{item.label}</Link>;
+              return <Link className={`nav-link${active ? " active" : ""}`} href={item.href as Route} aria-current={active ? "page" : undefined} key={item.href}>{item.label}</Link>;
             })}
           </nav>
         </div>

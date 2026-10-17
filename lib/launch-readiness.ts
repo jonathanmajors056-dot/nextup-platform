@@ -8,6 +8,7 @@ export type ReadinessItem = {
 
 import { createClient } from "@supabase/supabase-js";
 import { rateLimitingConfigured } from "./rate-limit";
+import { configuredAIProviders, hasAIProvider } from "./ai-client";
 
 function present(value: string | undefined) {
   return Boolean(value?.trim());
@@ -27,7 +28,8 @@ export async function getLaunchReadiness() {
   const supabase = supabaseConfigured && schemaReady;
   const admin = present(process.env.ADMIN_REVIEW_KEY);
   const auth = present(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-  const openai = present(process.env.OPENAI_API_KEY);
+  const ai = hasAIProvider();
+  const aiProviders = configuredAIProviders();
   const opportunityFeeds = present(process.env.OPPORTUNITY_RSS_URLS) || present(process.env.OPPORTUNITY_API_URLS);
   const newsFeeds = present(process.env.NEWS_RSS_URLS) || present(process.env.NEWS_API_URLS);
   const maps = present(process.env.GOOGLE_MAPS_API_KEY) && present(process.env.GOOGLE_GEOCODING_API_KEY);
@@ -38,7 +40,7 @@ export async function getLaunchReadiness() {
     { id: "database", label: "Supabase persistence", configured: supabase, detail: supabase ? "Database configuration and core tables are ready" : supabaseConfigured ? "Credentials exist, but one or more core tables are missing; apply supabase/schema.sql" : "Demo fallback is active; configure Supabase and apply supabase/schema.sql", requiredFor: "pilot" },
     { id: "admin", label: "Admin protection", configured: admin, detail: admin ? "Review endpoints are protected" : "Set ADMIN_REVIEW_KEY before production review operations", requiredFor: "pilot" },
     { id: "auth", label: "Student accounts", configured: auth, detail: auth ? "Supabase Auth sign-in is enabled" : "Anonymous browser workspaces are active; add the Supabase anon key for accounts", requiredFor: "public" },
-    { id: "ai", label: "AI extraction", configured: openai, detail: openai ? "Draft extraction is available" : "Manual drafts still work; AI extraction is unavailable", requiredFor: "pilot" },
+    { id: "ai", label: "AI extraction", configured: ai, detail: ai ? `Draft extraction is available via ${aiProviders.join(", ")}` : "Manual drafts still work; configure a free-tier AI provider", requiredFor: "pilot" },
     { id: "opportunity-feeds", label: "Live opportunity feeds", configured: opportunityFeeds, detail: opportunityFeeds ? "Approved RSS/API sources are configured" : "Manual submissions only; add permitted sources", requiredFor: "public" },
     { id: "news-feeds", label: "Live tech news feeds", configured: newsFeeds, detail: newsFeeds ? "Approved news sources are configured" : "NewsPortal is using curated/demo content", requiredFor: "public" },
     { id: "maps", label: "Google Maps preview", configured: maps, detail: maps ? "Static maps and server-side geocoding are enabled" : "Set both Google Maps and Geocoding keys; CSS map fallback remains available", requiredFor: "pilot" },
